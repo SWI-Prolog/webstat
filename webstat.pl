@@ -101,7 +101,7 @@ collapsed_button -->
 webstat_logo(_Options) -->
 	{ http_absolute_location(webstat(.), HREF, [])
 	},
-	html(a([href(HREF), class('webstat-logo')], &(nbsp))).
+	html(a([href(HREF), class(['webstat-logo', 'navbar-brand'])], &(nbsp))).
 
 
 		 /*******************************
