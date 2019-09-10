@@ -1,3 +1,14 @@
 @import url("../node_modules/bootstrap/dist/css/bootstrap.css");
 @import url("../node_modules/tabulator-tables/dist/css/tabulator.css");
 
+/* Logos */
+
+a.webstat-logo {
+  position:absolute;
+  top:4px;
+  left:4px;
+  width: 42px;
+  height: 42px;
+  background-image: url("../icons/swipl-42.png");
+  background-size: 100%;
+}

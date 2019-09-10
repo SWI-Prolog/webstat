@@ -52,6 +52,7 @@ user:file_search_path(webstat, Dir) :-
 user:file_search_path(webstat_web,          webstat(web)).
 user:file_search_path(webstat_css,          webstat_web(css)).
 user:file_search_path(webstat_js,           webstat_web(js)).
+user:file_search_path(webstat_icons,        webstat_web(icons)).
 user:file_search_path(webstat_node_modules, webstat(node_modules)).
 
 http:location(webstat_css,   swi_webstat(css),   []).
@@ -59,16 +60,53 @@ http:location(webstat_css,   swi_webstat(css),   []).
 :- http_handler(webstat(home),         webstat_home,                                   []).
 :- http_handler(webstat(css),          serve_files_in_directory(webstat_css),          [prefix]).
 :- http_handler(webstat(js),           serve_files_in_directory(webstat_js),           [prefix]).
+:- http_handler(webstat(icons),        serve_files_in_directory(webstat_icons),        [prefix]).
 :- http_handler(webstat(node_modules), serve_files_in_directory(webstat_node_modules), [prefix]).
 
 webstat_home(_Request) :-
     reply_html_page(
         [ title('SWI-Prolog web statistics')
         ],
-        \webstat_home).
+        \webstat_home([])).
 
-webstat_home -->
-    webstat_resources.
+webstat_home(Options) -->
+    webstat_resources,
+	html(nav([ class([navbar, 'navbar-default']),
+		   role(navigation)
+		 ],
+		 [ div(class('navbar-header'),
+		       [ \collapsed_button,
+			 \webstat_logo(Options)
+		       ]),
+		   div([ class([collapse, 'navbar-collapse']),
+			 id(navbar)
+		       ],
+		       [ ul([class([nav, 'navbar-nav', menubar])], []),
+			 ul([class([nav, 'navbar-nav', 'navbar-right'])], [])
+                       ])
+                 ])).
+
+collapsed_button -->
+	html(button([type(button),
+		     class('navbar-toggle'),
+		     'data-toggle'(collapse),
+		     'data-target'('#navbar')
+		    ],
+		    [ span(class('sr-only'), 'Toggle navigation'),
+		      span(class('icon-bar'), []),
+		      span(class('icon-bar'), []),
+		      span(class('icon-bar'), [])
+		    ])).
+
+webstat_logo(_Options) -->
+	{ http_absolute_location(webstat(.), HREF, [])
+	},
+	html(a([href(HREF), class('webstat-logo')], &(nbsp))).
+
+
+		 /*******************************
+		 *          RESOURCES		*
+		 *******************************/
 
 webstat_resources -->
     webstat_css,

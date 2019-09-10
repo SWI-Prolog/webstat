@@ -42,23 +42,45 @@
  * @requires jquery
  */
 
-define([ "jquery", "laconic" ],
-       function() {
+define([ "jquery",
+	 "modal",
+	 "laconic",
+	 "navbar",
+	 "bootstrap"
+       ],
+       function($, modal) {
 
 (function($) {
   var pluginName = 'webstat';
 
+  var defaults = {
+    menu: {
+      "Show":
+      { "Tabled predicates": function() {
+	  $("body").webstat('tabled_predicates');
+	}
+      }
+    }
+  }; // defaults
+
   /** @lends $.fn.webstat */
   var methods = {
     _init: function(options) {
+      options = options||{};
+      this.addClass("webstat");
+
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
 
-	elem.append($.el.div("Hello world"));
+	$("#navbar").navbar(defaults.menu);
 
 	elem.data(pluginName, data);	/* store with element */
       });
+    },
+
+    tabled_predicates: function() {
+      alert("Hello!");
     }
   }; // methods
 
