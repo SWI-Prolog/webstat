@@ -3,6 +3,7 @@
     "tabulator-tables": "*",
     "bootstrap": "twbs/bootstrap#3",
     "jquery": "jquery/jquery-dist#>= 1.0.0",
+    "laconic": "joestelmach/laconic#*",
     "requirejs": "jrburke/requirejs-bower#*",
     "sparkline": "gwatts/jquery.sparkline#*",
     "svg-pan-zoom": "ariutta/svg-pan-zoom#*"

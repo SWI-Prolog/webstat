@@ -36,11 +36,30 @@
           [
           ]).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_server_files)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 
 :- use_module(library(tstat)).
 
-:- http_handler(webstat(home), webstat_home, []).
+:- multifile
+    user:file_search_path/2.
+
+user:file_search_path(webstat, Dir) :-
+    source_file(webstat:webstat_home(_), File),
+    file_directory_name(File, Dir).
+user:file_search_path(webstat_web,          webstat(web)).
+user:file_search_path(webstat_css,          webstat_web(css)).
+user:file_search_path(webstat_js,           webstat_web(js)).
+user:file_search_path(webstat_node_modules, webstat(node_modules)).
+
+http:location(webstat_css,   swi_webstat(css),   []).
+
+:- http_handler(webstat(home),         webstat_home,                                   []).
+:- http_handler(webstat(css),          serve_files_in_directory(webstat_css),          [prefix]).
+:- http_handler(webstat(js),           serve_files_in_directory(webstat_js),           [prefix]).
+:- http_handler(webstat(node_modules), serve_files_in_directory(webstat_node_modules), [prefix]).
 
 webstat_home(_Request) :-
     reply_html_page(
