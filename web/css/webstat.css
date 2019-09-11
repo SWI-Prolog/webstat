@@ -28,3 +28,12 @@ body .modal-dialog.modal-wide {
   max-width: none;
 }
 
+body, html {
+  width: 100%;
+  height: 100%;
+  padding: 0px;
+}
+
+#content {
+  height: 100%;
+}

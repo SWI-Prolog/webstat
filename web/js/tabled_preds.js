@@ -43,7 +43,7 @@
  */
 
 define([ "jquery", "tabulator", "laconic" ],
-       function($, tabulator) {
+       function($, Tabulator) {
 
 (function($) {
   var pluginName = 'tabled_preds';
@@ -55,14 +55,14 @@ define([ "jquery", "tabulator", "laconic" ],
 	var elem = $(this);
 	var data = {};			/* private data */
 
-	$.get("/webstats/api/table/predicates",
+	$.get("/swi/webstat/api/table/predicates",
 	      function(data) {
-		var table = new Tabulator(elem, {
+		var table = new Tabulator(elem[0], {
 		  height:"100%",
 		  data:data,
 		  layout:"fitDataFill",
 		  initialSort:[{column:"tables",dir:"desc"}],
-		  columns:columns,
+		  columns:columns(),
 		  rowClick:function(e, row){
 		    console.log("Row " + row.getData().variant + " Clicked!!!!");
 		  }

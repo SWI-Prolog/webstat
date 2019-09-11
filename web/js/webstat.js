@@ -2,7 +2,7 @@ require.config({
   urlArgs: "ts="+new Date().getTime(),	/* prevent caching during development */
   waitSeconds: 60,			/* webstat-min.js is big */
   paths:
-  { tabulator:		"../node_modules/jquery/dist/js/tabulator.min.js",
+  { tabulator:		"../node_modules/tabulator-tables/dist/js/tabulator.min",
     jquery:             "../node_modules/jquery/dist/jquery.min",
     laconic:            "../node_modules/laconic/laconic",
     bootstrap:          "../node_modules/bootstrap/dist/js/bootstrap.min",

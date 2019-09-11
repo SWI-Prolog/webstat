@@ -45,7 +45,7 @@ webstat(Port) :-
 webstat(Options) :-
     http_server(Options).
 
-http:location(webstat,   root(swi_webstat),   []).
+http:location(webstat,   root('swi/webstat'),   []).
 
 :- http_handler(root(.), http_redirect(see_other, webstat(home)),
                 [priority(-100)]).

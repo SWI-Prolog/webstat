@@ -53,8 +53,8 @@ user:file_search_path(webstat_js,           webstat_web(js)).
 user:file_search_path(webstat_icons,        webstat_web(icons)).
 user:file_search_path(webstat_node_modules, webstat(node_modules)).
 
-http:location(webstat_css,   swi_webstat(css),   []).
-http:location(webstat_api,   swi_webstat(api),   []).
+http:location(webstat_css,   webstat(css),   []).
+http:location(webstat_api,   webstat(api),   []).
 
 :- http_handler(webstat(home),
                 webstat_home, []).
