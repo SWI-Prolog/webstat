@@ -47,6 +47,7 @@ define([ "jquery",
 	 "laconic",
 	 "navbar",
 	 "bootstrap",
+	 "tabbed",
 
 	 "tabled_preds",
 	 "IDG"
@@ -80,16 +81,39 @@ define([ "jquery",
 	var data = {};			/* private data */
 
 	$("#navbar").navbar(defaults.menu);
+	$("#content").tabbed();
 
 	elem.data(pluginName, data);	/* store with element */
       });
     },
 
+    /** Add a new tab
+     *
+     * @return the div element that is the content of the tab
+     */
+    tab: function(options) {
+      var dom = $.el.div();
+      var opts;
+
+      if ( typeof(options) == "object" )
+	opts = options;
+      else if ( typeof(options) == "string" )
+	opts = {label:options};
+      else if ( !options )
+	opts = {};
+
+      if ( opts.active == undefined ) opts.active = true;
+      if ( opts.close  == undefined ) opts.close  = true;
+
+      $("#content").tabbed('addTab', dom, opts);
+      return $(dom);
+    },
+
     show_tabled_predicates: function() {
-      $("#content").empty().tabled_preds();
+      this.webstat('tab', "Tabled predicates").tabled_preds();
     },
     show_idg: function() {
-      $("#content").empty().IDG();
+      this.webstat('tab', "IDG").IDG();
     }
   }; // methods
 

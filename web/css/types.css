@@ -1,0 +1,8 @@
+/* Specify icons for a tab type.  Elements that must be styles this way
+   need the style "type-icon" and the file extension.
+*/
+
+.type-icon.swipl {
+  background-image: url("../icons/swipl.png");
+}
+
