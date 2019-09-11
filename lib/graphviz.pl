@@ -201,7 +201,7 @@ svg(SVG, _Options) -->
      var pan;
 
      function updateSize() {
-       var w = svg.closest("div.answer").innerWidth();
+       var w = svg.closest("div.tab-pane").innerWidth();
 
        function reactive() {
 	 if ( !data.reactive ) {
@@ -210,8 +210,9 @@ svg(SVG, _Options) -->
 	 }
        }
 
-       w = Math.max(w*0.85, 100);
+       w = Math.max(w, 100);
        if ( w < data.w0 ) {
+         svg.css("overflow", "visible");
 	 svg.width(w);
 	 svg.height(w = Math.max(w*data.h0/data.w0, w/4));
 	 reactive();

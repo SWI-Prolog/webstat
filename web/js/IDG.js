@@ -57,6 +57,8 @@ define([ "jquery", "utils" ],
 
 	$.get("/swi/webstat/api/table/IDG",
 	      function(html) {
+		elem.css("overflow", "hidden");
+		elem.css("height", "100%");
 		elem.html(html);
 		utils.evalScripts(elem);
 	      });
