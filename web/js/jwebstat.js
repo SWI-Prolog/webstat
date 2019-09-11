@@ -46,7 +46,9 @@ define([ "jquery",
 	 "modal",
 	 "laconic",
 	 "navbar",
-	 "bootstrap"
+	 "bootstrap",
+
+	 "tabled_preds"
        ],
        function($, modal) {
 
@@ -80,7 +82,7 @@ define([ "jquery",
     },
 
     tabled_predicates: function() {
-      alert("Hello!");
+      $("#content").empty().tabled_preds();
     }
   }; // methods
 

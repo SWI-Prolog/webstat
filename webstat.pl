@@ -41,8 +41,6 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 
-:- use_module(library(tstat)).
-
 :- multifile
     user:file_search_path/2.
 
@@ -56,12 +54,18 @@ user:file_search_path(webstat_icons,        webstat_web(icons)).
 user:file_search_path(webstat_node_modules, webstat(node_modules)).
 
 http:location(webstat_css,   swi_webstat(css),   []).
+http:location(webstat_api,   swi_webstat(api),   []).
 
-:- http_handler(webstat(home),         webstat_home,                                   []).
-:- http_handler(webstat(css),          serve_files_in_directory(webstat_css),          [prefix]).
-:- http_handler(webstat(js),           serve_files_in_directory(webstat_js),           [prefix]).
-:- http_handler(webstat(icons),        serve_files_in_directory(webstat_icons),        [prefix]).
-:- http_handler(webstat(node_modules), serve_files_in_directory(webstat_node_modules), [prefix]).
+:- http_handler(webstat(home),
+                webstat_home, []).
+:- http_handler(webstat(css),
+                serve_files_in_directory(webstat_css), [prefix]).
+:- http_handler(webstat(js),
+                serve_files_in_directory(webstat_js), [prefix]).
+:- http_handler(webstat(icons),
+                serve_files_in_directory(webstat_icons), [prefix]).
+:- http_handler(webstat(node_modules),
+                serve_files_in_directory(webstat_node_modules), [prefix]).
 
 webstat_home(_Request) :-
     reply_html_page(
@@ -71,37 +75,45 @@ webstat_home(_Request) :-
 
 webstat_home(Options) -->
     webstat_resources,
-	html(nav([ class([navbar, 'navbar-default']),
-		   role(navigation)
-		 ],
-		 [ div(class('navbar-header'),
-		       [ \collapsed_button,
-			 \webstat_logo(Options)
-		       ]),
-		   div([ class([collapse, 'navbar-collapse']),
-			 id(navbar)
-		       ],
-		       [ ul([class([nav, 'navbar-nav', menubar])], []),
-			 ul([class([nav, 'navbar-nav', 'navbar-right'])], [])
-                       ])
-                 ])).
+    navbar(Options),
+    content(Options).
+
+navbar(Options) -->
+    html(nav([ class([navbar, 'navbar-default']),
+               role(navigation)
+             ],
+             [ div(class('navbar-header'),
+                   [ \collapsed_button,
+                     \webstat_logo(Options)
+                   ]),
+               div([ class([collapse, 'navbar-collapse']),
+                     id(navbar)
+                   ],
+                   [ ul([class([nav, 'navbar-nav', menubar])], []),
+                     ul([class([nav, 'navbar-nav', 'navbar-right'])], [])
+                   ])
+             ])).
 
 collapsed_button -->
-	html(button([type(button),
-		     class('navbar-toggle'),
-		     'data-toggle'(collapse),
-		     'data-target'('#navbar')
-		    ],
-		    [ span(class('sr-only'), 'Toggle navigation'),
-		      span(class('icon-bar'), []),
-		      span(class('icon-bar'), []),
-		      span(class('icon-bar'), [])
-		    ])).
+    html(button([type(button),
+                 class('navbar-toggle'),
+                 'data-toggle'(collapse),
+                 'data-target'('#navbar')
+                ],
+                [ span(class('sr-only'), 'Toggle navigation'),
+                  span(class('icon-bar'), []),
+                  span(class('icon-bar'), []),
+                  span(class('icon-bar'), [])
+                ])).
 
 webstat_logo(_Options) -->
-	{ http_absolute_location(webstat(.), HREF, [])
-	},
-	html(a([href(HREF), class(['webstat-logo', 'navbar-brand'])], &(nbsp))).
+    { http_absolute_location(webstat(.), HREF, [])
+    },
+    html(a([href(HREF), class(['webstat-logo', 'navbar-brand'])], &(nbsp))).
+
+
+content(_Options) -->
+    html(div(id(content), [])).
 
 
 		 /*******************************
@@ -157,3 +169,11 @@ alt(css, 'webstat.css',     webstat_web('css/webstat.css')).
 alt(rjs, 'js/require.js', webstat_web('js/require.js')) :-
 	\+ debugging(nominified).
 alt(rjs, 'node_modules/requirejs/require.js', -).
+
+
+		 /*******************************
+		 *            LOAD APIS		*
+		 *******************************/
+
+:- use_module(webstat('lib/table/predicates')).
+
