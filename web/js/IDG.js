@@ -54,7 +54,9 @@ define([ "jquery", "utils" ],
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
-	var query = {},
+	var query = {};
+
+	options = options||{};
 
 	if ( options.predicate ) query.focus = options.predicate;
 

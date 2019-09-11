@@ -33,7 +33,8 @@
 */
 
 :- module(webstat_predicate,
-          [ pred_detail_dict/3
+          [ pi_string_pi/2,                     % +String, -PI
+            pred_detail_dict/3                  % :Goal, -Dict, +Options
           ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
