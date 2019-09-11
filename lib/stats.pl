@@ -34,6 +34,7 @@
 
 :- module(webstat_stats,
           [ tabled_predicate_with_tables/1,	% ?Head
+            table_statistics/3,                 % :Goal, ?Key, ?Value
             table_statistics_dict/2,		% :Head, -Dict
             idg_predicate/1,			% -PI
             idg_predicate_edge/4		% +From, +Dir, -To, -Count
@@ -93,7 +94,7 @@ table_statistics_(Variant, Stat, Total) :-
 
 hidden_stat(variables, _).
 hidden_stat(lookup, _).
-hidden_stat(invaldated, Variant) :-
+hidden_stat(invalidated, Variant) :-
     callable(Variant),
     \+ predicate_property(Variant, tabled(incremental)).
 hidden_stat(reevaluated, Variant) :-

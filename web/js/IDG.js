@@ -67,12 +67,19 @@ define([ "jquery", "utils" ],
 		elem.css("height", "100%");
 		elem.html(html);
 		utils.evalScripts(elem);
+		finish(elem.find("svg"));
 	      });
 
 	elem.data(pluginName, data);	/* store with element */
       });
     }
   }; // methods
+
+  function finish(svg) {
+    var focus = svg.find("ellipse[stroke-width=2]");
+
+    console.log("Focus ", focus);
+  }
 
   /**
    * <Class description>

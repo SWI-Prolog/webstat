@@ -84,7 +84,7 @@ idg_graph_(digraph(Graph), Options) :-
     append([Nodes|Edges], Graph).
 
 focussed_idg(Focus, [FocusNode|Graph], _Options) :-
-    predicate_node(Focus, FocusNode),
+    predicate_node(Focus, FocusNode, [penwidth(2)]),
     findall(Edge-P2, predicate_edge([Focus], dependent, Edge, P2), DepPairs),
     findall(Edge-P2, predicate_edge([Focus], affected,  Edge, P2), AffPairs),
     pairs_keys_values(DepPairs, DepEdges, Deps),
@@ -95,7 +95,10 @@ focussed_idg(Focus, [FocusNode|Graph], _Options) :-
     append(DepEdges, AffEdges, NEdges),
     append([InterEdges|NEdges], Graph).
 
-predicate_node(P, node(Id, [label(Label)])) :-
+predicate_node(P, Node) :-
+    predicate_node(P, Node, []).
+
+predicate_node(P, node(Id, [label(Label)|Attrs]), Attrs) :-
     node_id(P, Id),
     pi_label(P, Label).
 
@@ -143,10 +146,34 @@ shape(P, [shape(cylinder)]) :-
     !.
 shape(_, []).
 
-pi_label(user:PI, Label) :-
+pi_label(PI, HTML) :-
+    (   pi_head(PI, Head),
+        findall(L, label_attr(Head, L), Ls),
+        Ls \== [],
+        append_sep(Ls, ', ', Attrs)
+    ->  HTML = html([Label, br([]) | Attrs])
+    ;   HTML = Label
+    ),
+    pi_label_string(PI, Label).
+
+label_attr(Head, [i('I:'), Inval]) :-
+    table_statistics(Head, invalidated, Inval),
+    Inval > 0.
+label_attr(Head, [i('R:'), Reval]) :-
+    table_statistics(Head, reevaluated, Reval),
+    Reval > 0.
+
+append_sep([], _, []).
+append_sep([H], _, H) :-
+    !.
+append_sep([H|T], Sep, List) :-
+    append(H, [Sep|T1], List),
+    append_sep(T, Sep, T1).
+
+pi_label_string(user:PI, Label) :-
     !,
     term_string(PI, Label).
-pi_label(PI, Label) :-
+pi_label_string(PI, Label) :-
     !,
     term_string(PI, Label).
 
