@@ -211,6 +211,7 @@ var tabbed;
      * @param {String} id is the id of the tab to destroy
      */
     removeTab: function(id) {
+      var data = this.data(pluginName);
       var li  = this.tabbed('navTabs').find("a[data-id='"+id+"']").parent();
       var tab = $("#"+id);
       var new_active;
@@ -221,7 +222,8 @@ var tabbed;
       tab.remove();
       if ( new_active && new_active.length > 0 ) {
 	new_active.find("a").first().tab('show');
-      } else if ( this.tabbed('navContent').children().length == 0 ) {
+      } else if ( this.tabbed('navContent').children().length == 0 &&
+		  data.newTab ) {
 	this.tabbed('newTab');
       }
     },
