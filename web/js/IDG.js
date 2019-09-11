@@ -1,10 +1,10 @@
-/*  Part of webstat
+/*  Part of SWISH
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2019, VU University Amsterdam
-			 CWI Amsterdam
+    Copyright (C): 2014-2016, VU University Amsterdam
+			      CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -38,65 +38,38 @@
  * <Description of the File>
  *
  * @version 0.2.0
- * @author Jan Wielemaker, J.Wielemaker@cwi.nl
+ * @author Jan Wielemaker, J.Wielemaker@vu.nl
  * @requires jquery
  */
 
-define([ "jquery",
-	 "modal",
-	 "laconic",
-	 "navbar",
-	 "bootstrap",
-
-	 "tabled_preds",
-	 "IDG"
-       ],
-       function($, modal) {
+define([ "jquery", "utils" ],
+       function($, utils) {
 
 (function($) {
-  var pluginName = 'webstat';
+  var pluginName = 'IDG';
 
-  var defaults = {
-    menu: {
-      "Show":
-      { "Tabled predicates": function() {
-	  $("body").webstat('show_tabled_predicates');
-	},
-	"Incremental Dependency Graph": function() {
-	  $("body").webstat('show_idg');
-	}
-      }
-    }
-  }; // defaults
-
-  /** @lends $.fn.webstat */
+  /** @lends $.fn.IDG */
   var methods = {
     _init: function(options) {
-      options = options||{};
-      this.addClass("webstat");
-
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
 
-	$("#navbar").navbar(defaults.menu);
+	$.get("/swi/webstat/api/table/IDG",
+	      function(html) {
+		elem.html(html);
+		utils.evalScripts(elem);
+	      });
 
 	elem.data(pluginName, data);	/* store with element */
       });
-    },
-
-    show_tabled_predicates: function() {
-      $("#content").empty().tabled_preds();
-    },
-    show_idg: function() {
-      $("#content").empty().IDG();
     }
   }; // methods
 
   /**
    * <Class description>
    *
-   * @class webstat
+   * @class IDG
    * @tutorial jquery-doc
    * @memberOf $.fn
    * @param {String|Object} [method] Either a method name or the jQuery
@@ -104,7 +77,7 @@ define([ "jquery",
    * @param [...] Zero or more arguments passed to the jQuery `method`
    */
 
-  $.fn.webstat = function(method) {
+  $.fn.IDG = function(method) {
     if ( methods[method] ) {
       return methods[method]
 	.apply(this, Array.prototype.slice.call(arguments, 1));

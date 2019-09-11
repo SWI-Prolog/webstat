@@ -35,6 +35,7 @@
 :- module(webstat_stats,
           [ tabled_predicate_with_tables/1,	% ?Head
             table_statistics_dict/2,		% :Head, -Dict
+            idg_predicate/1,			% -PI
             idg_predicate_edge/4		% +From, +Dir, -To, -Count
           ]).
 :- use_module(library(aggregate)).
@@ -47,7 +48,7 @@
 :- meta_predicate
     tabled_predicate_with_tables(:),
     table_statistics_dict(:, -),
-    idg_predicate_edge(:,+,:,-).
+    idg_predicate_edge(:,+,-,-).
 
 %!  tabled_predicate_with_tables(:Pred) is nondet.
 %
@@ -187,3 +188,17 @@ pred_idg_link_(PI, Dir, PI2) :-
     '$idg_edge'(Trie, Dir, Trie2),
     '$tbl_table_status'(Trie2, _Status, Head2, _Return),
     pi_head(PI2, Head2).
+
+%!  idg_predicate(:PI) is nondet.
+%
+%   True when PI refers to a tabled predicate that is part of the IDG.
+
+idg_predicate(PI) :-
+    Head = _:_,
+    tabled_predicate_with_tables(Head),
+    predicate_property(Head, tabled(incremental)),
+    (   table(Head, Trie),
+        '$idg_edge'(Trie, _Dir, _Trie2)
+    ->  pi_head(PI, Head)
+    ).
+
