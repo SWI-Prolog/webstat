@@ -506,17 +506,27 @@ attribute(Name=html(Value), _, List, Tail) :-
 	format(codes(List,Tail), '~w=<~w>', [Name, Value]).
 attribute(Name=html(Term), _, List, Tail) :-
 	nonvar(Term), !,
-	phrase(html(Term), Tokens0),
+	phrase(xhtml(Term), Tokens0),
 	delete(Tokens0, nl(_), Tokens),
 	with_output_to(string(HTML), print_html(Tokens)),
 	format(codes(List,Tail), '~w=<~w>', [Name, HTML]).
 attribute(Name=Value, _O) --> !,
 	atom(Name),"=",value(Name, Value).
-attribute(NameValue, _O)  -->
+attribute(NameValue, O)  -->
 	{NameValue =.. [Name,Value]}, !,
-	atom(Name),"=",value(Name, Value).
+	attribute(Name=Value, O).
 attribute(NameValue, _O)  -->
 	{ domain_error(graphviz_attribute, NameValue) }.
+
+:- meta_predicate
+	xhtml(:, ?, ?).
+
+xhtml(Term, List, Tail) :-
+	current_prolog_flag(html_dialect, Dialect),
+	setup_call_cleanup(
+	    set_prolog_flag(html_dialect, xhtml),
+	    html(Term, List, Tail),
+	    set_prolog_flag(html_dialect, Dialect)).
 
 %%	value(+Name, +Value)//
 %
