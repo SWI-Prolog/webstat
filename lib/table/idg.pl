@@ -42,6 +42,7 @@
 :- use_module(library(lists)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
+:- use_module(library(pairs)).
 
 :- use_module(webstat(lib/graphviz)).
 :- use_module(webstat(lib/util)).
@@ -79,15 +80,20 @@ idg_graph_(digraph(Graph), Options) :-
     debug(idg, 'Creating IDG from options = ~p', [Options]),
     findall(PI, idg_predicate(PI), Preds),
     maplist(predicate_node, Preds, Nodes),
-    findall(Edge, predicate_edge(Preds, dependent, Edge), Edges),
+    findall(Edge, predicate_edge(Preds, dependent, Edge, _), Edges),
     append([Nodes|Edges], Graph).
 
 focussed_idg(Focus, [FocusNode|Graph], _Options) :-
     predicate_node(Focus, FocusNode),
-    findall(Edge, predicate_edge([Focus], dependent, Edge), DepEdges),
-    findall(Edge, predicate_edge([Focus], affected, Edge), AffEdges),
+    findall(Edge-P2, predicate_edge([Focus], dependent, Edge, P2), DepPairs),
+    findall(Edge-P2, predicate_edge([Focus], affected,  Edge, P2), AffPairs),
+    pairs_keys_values(DepPairs, DepEdges, Deps),
+    pairs_keys_values(AffPairs, AffEdges, Affs),
+    append(Deps, Affs, Expanded0),
+    delete(Expanded0, Focus, Expanded),
+    inter_edges(Expanded, InterEdges),
     append(DepEdges, AffEdges, NEdges),
-    append(NEdges, Graph).
+    append([InterEdges|NEdges], Graph).
 
 predicate_node(P, node(Id, [label(Label)])) :-
     node_id(P, Id),
@@ -96,7 +102,7 @@ predicate_node(P, node(Id, [label(Label)])) :-
 predicate_edge(Preds, Dir,
                [ edge(Edge, [penwidth(W), label(Count)])
                | More
-               ]) :-
+               ], P2) :-
     edge_dir(Dir, IDFrom, IDTo, Edge),
     member(P, Preds),
     node_id(P, IDFrom),
@@ -118,6 +124,18 @@ predicate_edge(Preds, Dir,
 
 edge_dir(dependent, IDFrom, IDTo, IDFrom-IDTo).
 edge_dir(affected,  IDFrom, IDTo, IDTo-IDFrom).
+
+inter_edges(Preds, Edges) :-
+    findall(Edge, inter_edge(Preds, Edge), Edges).
+
+inter_edge(Preds, edge(IDFrom-IDTo, [penwidth(W), label(Count)])) :-
+    member(P1, Preds),
+    member(P2, Preds),
+    P1 @> P2,
+    idg_predicate_edge(P1, dependent, P2, Count),
+    node_id(P1, IDFrom),
+    node_id(P2, IDTo),
+    W is 1+log10(Count).
 
 shape(P, [shape(cylinder)]) :-
     pi_head(P, Goal),
