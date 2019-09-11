@@ -38,9 +38,13 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
-:- use_module(webstat(lib/util)).
-:- use_module(library(tstat)).
+:- use_module(library(prolog_code)).
 
+:- use_module(webstat(lib/util)).
+:- use_module(webstat(lib/stats)).
+
+/** <module> HTTP API for information about predicates
+*/
 
 :- http_handler(webstat_api('table/predicates'),
                 table_predicates, []).
@@ -55,8 +59,8 @@ table_predicates(Request) :-
 predicate_data(Data) :-
     Pred = (_:_),
     findall(Dict,
-            ( tstat:tabled_predicate_with_tables(Pred),
-              tstat:table_statistics_dict(Pred, Dict0),
+            ( tabled_predicate_with_tables(Pred),
+              table_statistics_dict(Pred, Dict0),
               pred_to_json_dict(Dict0, Dict)
             ),
             Data).
