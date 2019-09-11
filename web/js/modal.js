@@ -221,12 +221,9 @@ define([ "jquery", "preferences", "laconic", "bootstrap" ],
       }
       $(title).html(options.title);
       $(modalel).modal({show: true})
-		.on("click", "a", links.followLink)
-	        .on("shown.bs.modal", function() {
-		   initTagsManagers();
-		   // FIXME: should find a more structured way?
-		   $(this).find(".swish-versions").version();
-		 })
+//		.on("click", "a", links.followLink)
+//	        .on("shown.bs.modal", function() {
+//		 })
 	        .on("hidden.bs.modal", function() {
 		  if ( options.onclose )
 		    options.onclose();
@@ -398,24 +395,6 @@ define([ "jquery", "preferences", "laconic", "bootstrap" ],
     } else {
       return "";
     }
-  }
-
-  /**
-   * Tags managers must be initialised after the DOM is complete.
-   * This cooperates with `tagInput()` from `form.js`
-   */
-  function initTagsManagers() {
-    var set = $(this).find(".tm-input");
-
-    set.each(function() {
-      var elem = $(this);
-      var tags = elem.data("prefilled");
-      var options = {};
-
-      if ( tags ) options.prefilled = tags;
-
-      elem.tagsManager(options);
-    });
   }
 
   /**

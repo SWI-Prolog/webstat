@@ -76,6 +76,9 @@ define([ "jquery",
       options = options||{};
       this.addClass("webstat");
 
+      setupModal();
+      setupResize();
+
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
@@ -116,6 +119,24 @@ define([ "jquery",
       this.webstat('tab', "IDG").IDG();
     }
   }; // methods
+
+  /**
+   * Setup modal actions.  Subsequently, modal dialogue windows
+   * are opened by using the trigger `help`.
+   * @example $("body").swish('action', 'help', {file:"about.html"});
+   */
+  function setupModal() {
+    if ( $("#modal").length == 0 ) {
+      $("body").append($.el.div({id:"modal"}));
+      $("#modal").swishModal();
+    }
+  }
+
+  function setupResize() {
+    $(window).resize(function() {
+      $(".reactive-size").trigger('reactive-resize');
+    });
+  }
 
   /**
    * <Class description>

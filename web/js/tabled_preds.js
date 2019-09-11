@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2014-2016, VU University Amsterdam
-			      CWI Amsterdam
+    Copyright (C): 2019, VU University Amsterdam
+			 CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@
  * @requires jquery
  */
 
-define([ "jquery", "tabulator", "laconic" ],
-       function($, Tabulator) {
+define([ "jquery", "tabulator", "modal", "laconic" ],
+       function($, Tabulator, modal) {
 
 (function($) {
   var pluginName = 'tabled_preds';
@@ -63,12 +63,27 @@ define([ "jquery", "tabulator", "laconic" ],
 		  initialSort:[{column:"tables",dir:"desc"}],
 		  columns:columns(),
 		  rowClick:function(e, row){
-		    console.log("Row " + row.getData().variant + " Clicked!!!!");
+		    elem[pluginName]('selected', row);
 		  }
 		});
 	      });
 
 	elem.data(pluginName, data);	/* store with element */
+      });
+    },
+
+    selected: function(row) {
+      modal.show({
+        title: "Predicate "+row.getData().variant,
+	body: function() {
+	  elem = $(this);
+	  $.get("/swi/webstat/html/predicate/details",
+		{ pi: row.getData().variant
+		},
+		function(data) {
+		  elem.html(data);
+		});
+	}
       });
     }
   }; // methods

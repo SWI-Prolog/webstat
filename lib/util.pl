@@ -44,6 +44,10 @@
 %   Run Goal using thread_signal/2 in the context of Thread.
 
 in_thread(Thread, Goal) :-
+    thread_self(Thread),
+    !,
+    once(Goal).
+in_thread(Thread, Goal) :-
     term_variables(Goal, Vars),
     thread_self(Me),
     A is random(1 000 000 000),
