@@ -34,16 +34,20 @@
 
 :- module(webstat_stats,
           [ tabled_predicate_with_tables/1,	% ?Head
-            table_statistics_dict/2		% :Head, -Dict
+            table_statistics_dict/2,		% :Head, -Dict
+            idg_predicate_edge/4		% +From, +Dir, -To, -Count
           ]).
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
+:- use_module(library(prolog_code)).
 
 /** <module> Data collection utilities
 */
 
 :- meta_predicate
-    tabled_predicate_with_tables(:).
+    tabled_predicate_with_tables(:),
+    table_statistics_dict(:, -),
+    idg_predicate_edge(:,+,:,-).
 
 %!  tabled_predicate_with_tables(:Pred) is nondet.
 %
@@ -162,3 +166,24 @@ variant_trie_stat(variables,      "Number of variables in answer skeletons",
 table(M:Variant, Trie) :-
     '$tbl_variant_table'(VariantTrie),
     trie_gen(VariantTrie, M:Variant, Trie).
+
+
+		 /*******************************
+		 *             IDG		*
+		 *******************************/
+
+%!  idg_predicate_edge(:PI, +Dir, :PI2, -Count) is nondet.
+%
+%   True if PI links to  PI2  in   direction  Dir  (one of `affected` or
+%   `dependent`). Count represents the number of  linked variants of the
+%   two predicates.
+
+idg_predicate_edge(PI, Dir, PI2, Count) :-
+    aggregate(count, pred_idg_link_(PI, Dir, PI2), Count).
+
+pred_idg_link_(PI, Dir, PI2) :-
+    pi_head(PI, Head),
+    table(Head, Trie),
+    '$idg_edge'(Trie, Dir, Trie2),
+    '$tbl_table_status'(Trie2, _Status, Head2, _Return),
+    pi_head(PI2, Head2).
