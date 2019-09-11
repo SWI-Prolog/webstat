@@ -53,9 +53,11 @@
 
 idg(Request) :-
     http_parameters(Request,
-                    [ thread(Thread, [default(main)])
+                    [ thread(Thread, [default(main)]),
+                      focus(Focus, [optional(true)])
                     ]),
-    in_thread(Thread, idg_graph(Graph, [])),
+    include(ground, [focus(Focus)], Options),
+    in_thread(Thread, idg_graph(Graph, Options)),
     reply_graph(Graph, []).
 
 idg_graph(Graph, Options) :-
@@ -63,7 +65,8 @@ idg_graph(Graph, Options) :-
         idg_graph_(Graph, Options),
         retractall(assigned(_,_))).
 
-idg_graph_(digraph(Graph), _Options) :-
+idg_graph_(digraph(Graph), Options) :-
+    debug(idg, 'Creating IDG from options = ~p', [Options]),
     findall(PI, idg_predicate(PI), Preds),
     maplist(predicate_node, Preds, Nodes),
     findall(Edge, predicate_edge(Preds, Edge), Edges),

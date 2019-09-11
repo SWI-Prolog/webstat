@@ -42,7 +42,7 @@
  * @requires jquery
  */
 
-define([ "jquery", "tabulator", "modal", "laconic" ],
+define([ "jquery", "tabulator", "modal", "laconic", "form" ],
        function($, Tabulator, modal) {
 
 (function($) {
@@ -73,15 +73,24 @@ define([ "jquery", "tabulator", "modal", "laconic" ],
     },
 
     selected: function(row) {
+      var pred = row.getData().variant;	/* predicate indicator */
+      var ws   = $(this).closest(".webstat");
+
       modal.show({
-        title: "Predicate "+row.getData().variant,
+        title: "Predicate "+pred,
 	body: function() {
-	  elem = $(this);
+	  var elem = $(this);
+
 	  $.get("/swi/webstat/html/predicate/details",
-		{ pi: row.getData().variant
+		{ pi: pred
 		},
 		function(data) {
 		  elem.html(data);
+		  elem.form('button_row', {
+		    "Show IDG": function() {
+		      ws.webstat('show_idg', { predicate: pred });
+		    }
+		  });
 		});
 	}
       });

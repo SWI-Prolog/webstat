@@ -54,8 +54,12 @@ define([ "jquery", "utils" ],
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
+	var query = {},
+
+	if ( options.predicate ) query.focus = options.predicate;
 
 	$.get("/swi/webstat/api/table/IDG",
+	      query,
 	      function(html) {
 		elem.css("overflow", "hidden");
 		elem.css("height", "100%");

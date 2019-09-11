@@ -1,10 +1,10 @@
-/*  Part of webstat
+/*  Part of SWISH
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2019, VU University Amsterdam
-			 CWI Amsterdam
+    Copyright (C): 2014-2016, VU University Amsterdam
+			      CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -38,110 +38,39 @@
  * <Description of the File>
  *
  * @version 0.2.0
- * @author Jan Wielemaker, J.Wielemaker@cwi.nl
+ * @author Jan Wielemaker, J.Wielemaker@vu.nl
  * @requires jquery
  */
 
-define([ "jquery",
-	 "modal",
-	 "laconic",
-	 "navbar",
-	 "bootstrap",
-	 "tabbed",
-
-	 "tabled_preds",
-	 "IDG"
-       ],
-       function($, modal) {
+define([ "jquery", "laconic" ],
+       function() {
 
 (function($) {
-  var pluginName = 'webstat';
+  var pluginName = 'form';
 
-  var defaults = {
-    menu: {
-      "Show":
-      { "Tabled predicates": function() {
-	  $("body").webstat('show_tabled_predicates');
-	},
-	"Incremental Dependency Graph": function() {
-	  $("body").webstat('show_idg');
-	}
-      }
-    }
-  }; // defaults
-
-  /** @lends $.fn.webstat */
+  /** @lends $.fn.form */
   var methods = {
     _init: function(options) {
-      options = options||{};
-      this.addClass("webstat");
-
-      setupModal();
-      setupResize();
-
-      return this.each(function() {
-	var elem = $(this);
-	var data = {};			/* private data */
-
-	$("#navbar").navbar(defaults.menu);
-	$("#content").tabbed();
-
-	elem.data(pluginName, data);	/* store with element */
-      });
     },
 
-    /** Add a new tab
-     *
-     * @return the div element that is the content of the tab
-     */
-    tab: function(options) {
-      var dom = $.el.div();
-      var opts;
+    button_row: function(actions) {
+      var div = $.el.div({class:"btn-group text-center"});
 
-      if ( typeof(options) == "object" )
-	opts = options;
-      else if ( typeof(options) == "string" )
-	opts = {label:options};
-      else if ( !options )
-	opts = {};
-
-      if ( opts.active == undefined ) opts.active = true;
-      if ( opts.close  == undefined ) opts.close  = true;
-
-      $("#content").tabbed('addTab', dom, opts);
-      return $(dom);
-    },
-
-    show_tabled_predicates: function(options) {
-      this.webstat('tab', "Tabled predicates").tabled_preds(options);
-    },
-    show_idg: function(options) {
-      this.webstat('tab', "IDG").IDG(options);
+      $(this).append(div);
+      for(var p in actions) {
+	if ( actions.hasOwnProperty(p) ) {
+	  var btn = $.el.button({class:"btn btn-primary"}, p);
+	  $(div).append(btn);
+	  $(btn).on("click", actions[p]);
+	}
+      }
     }
   }; // methods
 
   /**
-   * Setup modal actions.  Subsequently, modal dialogue windows
-   * are opened by using the trigger `help`.
-   * @example $("body").swish('action', 'help', {file:"about.html"});
-   */
-  function setupModal() {
-    if ( $("#modal").length == 0 ) {
-      $("body").append($.el.div({id:"modal"}));
-      $("#modal").swishModal();
-    }
-  }
-
-  function setupResize() {
-    $(window).resize(function() {
-      $(".reactive-size").trigger('reactive-resize');
-    });
-  }
-
-  /**
    * <Class description>
    *
-   * @class webstat
+   * @class form
    * @tutorial jquery-doc
    * @memberOf $.fn
    * @param {String|Object} [method] Either a method name or the jQuery
@@ -149,7 +78,7 @@ define([ "jquery",
    * @param [...] Zero or more arguments passed to the jQuery `method`
    */
 
-  $.fn.webstat = function(method) {
+  $.fn.form = function(method) {
     if ( methods[method] ) {
       return methods[method]
 	.apply(this, Array.prototype.slice.call(arguments, 1));
