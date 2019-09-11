@@ -35,5 +35,6 @@ body, html {
 }
 
 #content {
-  height: 100%;
+  height: calc(100% - 52px);
+  box-sizing: border-box;
 }

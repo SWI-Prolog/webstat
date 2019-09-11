@@ -69,3 +69,7 @@ a.accelerated span.accell-text
   position: absolute;
   right: 10px;
 }
+
+body.webstat .navbar {
+  margin-bottom: 0px;
+}

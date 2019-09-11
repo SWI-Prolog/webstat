@@ -58,7 +58,6 @@ define([ "jquery", "tabulator", "laconic" ],
 	$.get("/swi/webstat/api/table/predicates",
 	      function(data) {
 		var table = new Tabulator(elem[0], {
-		  height:"100%",
 		  data:data,
 		  layout:"fitDataFill",
 		  initialSort:[{column:"tables",dir:"desc"}],
