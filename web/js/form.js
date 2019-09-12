@@ -59,7 +59,9 @@ define([ "jquery", "laconic" ],
       $(this).append(div);
       for(var p in actions) {
 	if ( actions.hasOwnProperty(p) ) {
-	  var btn = $.el.button({class:"btn btn-primary"}, p);
+	  var btn = $.el.button({ class:"btn btn-primary",
+				  "data-dismiss":"modal"
+				}, p);
 	  $(div).append(btn);
 	  $(btn).on("click", actions[p]);
 	}

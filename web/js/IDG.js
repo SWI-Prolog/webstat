@@ -78,8 +78,18 @@ define([ "jquery", "utils" ],
   function finish(svg) {
     var focus = svg.find("ellipse[stroke-width=2]");
 
+    function pred(ev) {
+      return $(ev.target).closest("a").attr("xlink:href");
+    }
+
     svg.find("text").hover(function(ev) { console.log("in", ev.target); },
 			   function(ev) { console.log("out", ev.target); });
+
+    svg.on("click", "text", function(ev) {
+      var p = pred(ev);
+      console.log("Clicked ", pi);
+      return false;
+    });
 
     console.log("Focus ", focus);
   }

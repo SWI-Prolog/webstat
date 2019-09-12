@@ -63,7 +63,7 @@ define([ "jquery", "tabulator", "modal", "laconic", "form" ],
 		  initialSort:[{column:"tables",dir:"desc"}],
 		  columns:columns(),
 		  rowClick:function(e, row){
-		    elem[pluginName]('selected', row);
+		    elem[pluginName]('clicked', row);
 		  }
 		});
 	      });
@@ -72,7 +72,7 @@ define([ "jquery", "tabulator", "modal", "laconic", "form" ],
       });
     },
 
-    selected: function(row) {
+    clicked: function(row) {
       var pred = row.getData().variant;	/* predicate indicator */
       var ws   = $(this).closest(".webstat");
 

@@ -95,12 +95,13 @@ focussed_idg(Focus, [FocusNode|Graph], _Options) :-
     append(DepEdges, AffEdges, NEdges),
     append([InterEdges|NEdges], Graph).
 
-predicate_node(P, Node) :-
-    predicate_node(P, Node, []).
+predicate_node(PI, Node) :-
+    predicate_node(PI, Node, []).
 
-predicate_node(P, node(Id, [label(Label)|Attrs]), Attrs) :-
-    node_id(P, Id),
-    pi_label(P, Label).
+predicate_node(PI, node(Id, [label(Label), href(URL)|Attrs]), Attrs) :-
+    term_string(PI, URL),
+    node_id(PI, Id),
+    pi_label(PI, Label).
 
 predicate_edge(Preds, Dir,
                [ edge(Edge, [penwidth(W), label(Count)])
@@ -120,9 +121,9 @@ predicate_edge(Preds, Dir,
     (   assigned(P2, IDTo)
     ->  More = []
     ;   node_id(P2, IDTo),
-        pi_label(P2, Label),
         shape(P2, Shape),
-        More = [node(IDTo, [label(Label)|Shape])]
+        predicate_node(P2, Node, Shape),
+        More = [Node]
     ).
 
 edge_dir(dependent, IDFrom, IDTo, IDFrom-IDTo).
@@ -145,6 +146,10 @@ shape(P, [shape(cylinder)]) :-
     \+ predicate_property(Goal, tabled),
     !.
 shape(_, []).
+
+%!  pi_label(+PI, -Label)
+%
+%   Generate a (normally) HTML label for a node of the IDG.
 
 pi_label(PI, HTML) :-
     (   pi_head(PI, Head),
