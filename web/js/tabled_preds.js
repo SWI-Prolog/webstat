@@ -118,7 +118,7 @@ define([ "jquery", "tabulator", "modal", "laconic", "form" ],
        formatterParams:{precision:2}
      },
      { title:"Invalid",
-       field:"invalidat",
+       field:"invalid",
        headerTooltip:"# invalid tables"
      },
      { title:"Invaluated",

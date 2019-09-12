@@ -98,13 +98,22 @@ focussed_idg(Focus, [FocusNode|Graph], _Options) :-
 predicate_node(PI, Node) :-
     predicate_node(PI, Node, []).
 
-predicate_node(PI, node(Id, [label(Label), href(URL)|Attrs]), Attrs) :-
+predicate_node(PI, node(Id,
+                        [ label(Label),
+                          href(URL)
+                        | Shape
+                        ]), Attrs) :-
     term_string(PI, URL),
     node_id(PI, Id),
+    shape(PI, Shape, Attrs),
     pi_label(PI, Label).
 
 predicate_edge(Preds, Dir,
-               [ edge(Edge, [penwidth(W), label(Count)])
+               [ edge(Edge,
+                      [ penwidth(W), label(Count),
+                        labeltooltip(Tooltip),
+                        edgetooltip(Tooltip)
+                      ])
                | More
                ], P2) :-
     edge_dir(Dir, IDFrom, IDTo, Edge),
@@ -118,11 +127,11 @@ predicate_edge(Preds, Dir,
     ),
     debug(idg, '     ~p', [P2]),
     W is 1+log10(Count),
+    edge_tooltip(P, Dir, P2, Count, Tooltip),
     (   assigned(P2, IDTo)
     ->  More = []
     ;   node_id(P2, IDTo),
-        shape(P2, Shape),
-        predicate_node(P2, Node, Shape),
+        predicate_node(P2, Node),
         More = [Node]
     ).
 
@@ -141,11 +150,20 @@ inter_edge(Preds, edge(IDFrom-IDTo, [penwidth(W), label(Count)])) :-
     node_id(P2, IDTo),
     W is 1+log10(Count).
 
-shape(P, [shape(cylinder)]) :-
+%!  shape(+PI, -Attrs, ?Tail)
+
+shape(P, [shape(cylinder), tooltip('Incremental Dynamic predicate')|T], T) :-
     pi_head(P, Goal),
     \+ predicate_property(Goal, tabled),
     !.
-shape(_, []).
+shape(P, [style(filled), color(orange), tooltip(Tooltip)|T], T) :-
+    pi_head(P, Head),
+    table_statistics(Head, invalid, Count),
+    Count > 0,
+    format(string(Tooltip), 'Predicate has ~D invalid tables', [Count]),
+    !.
+shape(_, [tooltip('IDG node')|T], T).
+
 
 %!  pi_label(+PI, -Label)
 %
@@ -181,6 +199,15 @@ pi_label_string(user:PI, Label) :-
 pi_label_string(PI, Label) :-
     !,
     term_string(PI, Label).
+
+edge_tooltip(P1, dependent, P2, Count, Tooltip) :-
+    !,
+    pi_label_string(P1, L1),
+    pi_label_string(P2, L2),
+    format(string(Tooltip),
+           '~w depends on ~w\nwith ~D variants', [L1, L2, Count]).
+edge_tooltip(P1, affected, P2, Count, Tooltip) :-
+    edge_tooltip(P2, dependent, P1, Count, Tooltip).
 
 :- thread_local assigned/2.
 
