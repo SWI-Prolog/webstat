@@ -44,6 +44,7 @@
 
 define([ "jquery",
 	 "modal",
+	 "config",
 	 "laconic",
 	 "navbar",
 	 "bootstrap",
@@ -52,7 +53,7 @@ define([ "jquery",
 	 "tabled_preds",
 	 "IDG"
        ],
-       function($, modal) {
+       function($, modal, config) {
 
 (function($) {
   var pluginName = 'webstat';

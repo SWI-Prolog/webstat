@@ -43,7 +43,8 @@
 
 :- use_module(webstat(lib/util)).
 
-:- http_handler(webstat('html/predicate/details'), pred_details, []).
+:- http_handler(webstat('html/predicate/details'), pred_details,
+                [id(pred_details)]).
 
 pred_details(Request) :-
     http_parameters(Request,
