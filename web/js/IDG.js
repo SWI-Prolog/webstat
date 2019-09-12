@@ -78,6 +78,9 @@ define([ "jquery", "utils" ],
   function finish(svg) {
     var focus = svg.find("ellipse[stroke-width=2]");
 
+    svg.find("text").hover(function(ev) { console.log("in", ev.target); },
+			   function(ev) { console.log("out", ev.target); });
+
     console.log("Focus ", focus);
   }
 
