@@ -56,13 +56,15 @@ define([ "jquery", "utils", "modal" ],
 	var data = {};			/* private data */
 	var query = {};
 
-	options = options||{};
+	utils.busy(elem, true);
 
+	options = options||{};
 	if ( options.predicate ) query.focus = options.predicate;
 
 	$.get("/swi/webstat/api/table/IDG",
 	      query,
 	      function(html) {
+		utils.busy(elem, false);
 		elem.css("overflow", "hidden");
 		elem.css("height", "100%");
 		elem.html(html);

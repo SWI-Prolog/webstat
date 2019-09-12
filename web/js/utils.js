@@ -80,6 +80,16 @@ define(["jquery"],
 	delete $.ajaxScript;
     },
 
+    busy: function(elem, val) {
+      if ( val ) {
+	var busy;
+	elem.append(busy=$.el.div({class:"loading"}));
+	$(busy).show();
+      } else {
+	elem.find("div.busy").remove();
+      }
+    },
+
     /**
      * @param {String} url is the style sheet to load
      */
