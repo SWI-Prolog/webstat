@@ -74,26 +74,8 @@ define([ "jquery", "tabulator", "modal", "laconic", "form" ],
 
     clicked: function(row) {
       var pred = row.getData().variant;	/* predicate indicator */
-      var ws   = $(this).closest(".webstat");
 
-      modal.show({
-        title: "Predicate "+pred,
-	body: function() {
-	  var elem = $(this);
-
-	  $.get("/swi/webstat/html/predicate/details",
-		{ pi: pred
-		},
-		function(data) {
-		  elem.html(data);
-		  elem.form('button_row', {
-		    "Show IDG": function() {
-		      ws.webstat('show_idg', { predicate: pred });
-		    }
-		  });
-		});
-	}
-      });
+      modal.predicate_details({ predicate: pred });
     }
   }; // methods
 

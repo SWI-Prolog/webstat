@@ -42,10 +42,8 @@
  * @requires jquery
  */
 
-define([ "jquery", "preferences", "laconic", "bootstrap" ],
+define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
        function($, config, preferences) {
-
-/* NOTE: form dependency is circular.  Form is initialized later. */
 
 (function($) {
   var pluginName = 'swishModal';
@@ -88,6 +86,9 @@ define([ "jquery", "preferences", "laconic", "bootstrap" ],
 	});
 	elem.on("show", function(ev, options) {
 	  elem.swishModal('show', options);
+	});
+	elem.on("predicate_details", function(ev, options) {
+	  elem.swishModal('predicate_details', options);
 	});
 	elem.on("server_form", function(ev, options) {
 	  elem.swishModal('server_form', options);
@@ -232,6 +233,34 @@ define([ "jquery", "preferences", "laconic", "bootstrap" ],
 		});
 
       return this
+    },
+
+    /**
+     * Show detailed information about a predicate
+     */
+
+    predicate_details: function(options) {
+      var ws   = $(this).closest(".webstat");
+      var pred = options.predicate;
+
+      this.swishModal('show', {
+        title: "Predicate "+pred,
+	body: function() {
+	  var elem = $(this);
+	  var query = {pi: pred};
+
+	  $.get(config.http.locations.predicate_details,
+		query,
+		function(data) {
+		  elem.html(data);
+		  elem.form('button_row', {
+		    "Show IDG": function() {
+		      ws.webstat('show_idg', { predicate: pred });
+		    }
+		  });
+		});
+	}
+      });
     },
 
     /**
@@ -449,6 +478,9 @@ define([ "jquery", "preferences", "laconic", "bootstrap" ],
     },
     show: function(options) {
       $(".swish-event-receiver").trigger("show", options);
+    },
+    predicate_details: function(options) {
+      $(".swish-event-receiver").trigger("predicate_details", options);
     },
     server_form: function(options) {
       $(".swish-event-receiver").trigger("server_form", options);
