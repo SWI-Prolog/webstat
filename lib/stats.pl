@@ -96,7 +96,7 @@ hidden_stat(variables, _).
 hidden_stat(lookup, _).
 hidden_stat(invalidated, Variant) :-
     callable(Variant),
-    \+ predicate_property(Variant, tabled(incremental)).
+    \+ predicate_property(Variant, incremental).
 hidden_stat(reevaluated, Variant) :-
     callable(Variant),
     \+ predicate_property(Variant, tabled(incremental)).
