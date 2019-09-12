@@ -42,6 +42,7 @@
 :- use_module(library(option)).
 
 :- use_module(webstat(lib/util)).
+:- use_module(webstat(lib/stats)).
 
 :- http_handler(webstat('html/predicate/details'), pred_details,
                 [id(predicate_details)]).
@@ -74,6 +75,7 @@ pred_detail_rows(Dict, Options) -->
            tr([ th('Number of clauses'),
                 td(class(count), Dict.clause_count)
               ])
+         | \opt_pred_detail_rows(Dict, Options)
          ]).
 
 pred_props([], _, _) --> [].
@@ -84,11 +86,50 @@ pred_props([H|T], Dict, Options) -->
     ),
     pred_props(T, Dict, Options).
 
+opt_pred_detail_rows(Dict, Options) -->
+    pred_source(Dict, Options),
+    pred_tabled(Dict, Options).
+
+pred_source(Dict, _Options) -->
+    { _{file:File, line:Line} :< Dict.get(source) },
+    !,
+    html(tr([ th('Defined at'),
+              td([ span(class(file), File),
+                   :,
+                   span(class(line), Line)
+                 ])
+            ])).
+pred_source(_, _) --> [].
+
+pred_tabled(Dict, _Options) -->
+    { Tables = Dict.get(tabled) },
+    html(tr([ th('Tabled'),
+              td(class(piped),
+                 [ \table_count(Tables, tables,  '~D tables',  true),
+                   \table_count(Tables, answers, '~D answers', true)
+                 ])
+            ])),
+    !.
+pred_tabled(_, _) --> [].
+
+table_count(Tables, Name, Format, Cond) -->
+    { Count = Tables.get(Name),
+      (   Cond == true
+      ;   Cond == gt(N), Count > N
+      )
+    },
+    !,
+    html(span(class('table-prop'), Format-[Count])).
+table_count(_, _, _, _) --> [].
+
 
 %!  pred_detail_dict(:Goal, -Dict, +Options) is det.
 
 pred_detail_dict(Pred, Dict, Options) :-
-    predicate_property(Pred, thread_local),
+    (   predicate_property(Pred, thread_local)
+    ;   predicate_property(Pred, tabled),
+        \+ predicate_property(Pred, tabled(shared))
+    ),
     !,
     option(thread(Thread), Options, main),
     in_thread(Thread, pred_detail_dict_(Pred, Dict, Options)).
@@ -116,13 +157,16 @@ pred_detail(Pred, clause_count, Count) :-
     ->  true
     ;   Count = 0
     ).
+pred_detail(Pred, tabled, Tables) :-
+    predicate_property(Pred, tabled),
+    table_statistics_dict(Pred, Tables).
+
 
 pred_bool_option(multifile).
 pred_bool_option(discontiguous).
 pred_bool_option(dynamic).
 pred_bool_option(thread_local).
 pred_bool_option(incremental).
-pred_bool_option(tabled).
 
 
 %!  pi_string_pi(+String, -PI)

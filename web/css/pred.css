@@ -3,3 +3,20 @@ span.pred-opt {
   padding: 2px 4px;
   background: paleturquoise;
 }
+
+.piped span {
+  border-left: 1px solid #888;
+  padding: 0 5px;
+}
+.piped span:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+.text-piped span:after {
+  content: "|";
+  margin: 0 5px;
+}
+.text-piped span:last-child:after {
+  content: '';
+  margin: 0 5px;
+}
