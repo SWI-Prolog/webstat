@@ -117,7 +117,10 @@ define([ "jquery",
       this.webstat('tab', "Tabled predicates").tabled_preds(options);
     },
     show_idg: function(options) {
-      this.webstat('tab', "IDG").IDG(options);
+      var label = (options.predicate ? "IDG for " + options.predicate
+				     : "IDG");
+
+      this.webstat('tab', label).IDG(options);
     }
   }; // methods
 

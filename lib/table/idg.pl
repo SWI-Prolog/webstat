@@ -200,7 +200,12 @@ pi_label_string(PI, Label) :-
     !,
     term_string(PI, Label).
 
-edge_tooltip(P1, dependent, P2, Count, Tooltip) :-
+edge_tooltip(P1, dependent, P1, Count, Tooltip) :-
+    !,
+    pi_label_string(P1, L1),
+    format(string(Tooltip),
+           '~w has ~D self dependencies', [L1, Count]).
+ edge_tooltip(P1, dependent, P2, Count, Tooltip) :-
     !,
     pi_label_string(P1, L1),
     pi_label_string(P2, L2),
