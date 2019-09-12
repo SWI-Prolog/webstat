@@ -42,8 +42,8 @@
  * @requires jquery
  */
 
-define([ "jquery", "utils" ],
-       function($, utils) {
+define([ "jquery", "utils", "modal" ],
+       function($, utils, modal) {
 
 (function($) {
   var pluginName = 'IDG';
@@ -86,8 +86,7 @@ define([ "jquery", "utils" ],
 			   function(ev) { console.log("out", ev.target); });
 
     svg.on("click", "text", function(ev) {
-      var p = pred(ev);
-      console.log("Clicked ", pi);
+      modal.predicate_details({predicate: pred(ev)});
       return false;
     });
 
