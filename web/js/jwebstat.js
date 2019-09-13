@@ -51,7 +51,8 @@ define([ "jquery",
 	 "tabbed",
 
 	 "tabled_preds",
-	 "IDG"
+	 "IDG",
+	 "perfchart"
        ],
        function($, modal, config) {
 
@@ -61,7 +62,10 @@ define([ "jquery",
   var defaults = {
     menu: {
       "Show":
-      { "Tabled predicates": function() {
+      { "Performance": function() {
+	  $("body").webstat('show_perfchart');
+	},
+	"Tabled predicates": function() {
 	  $("body").webstat('show_tabled_predicates');
 	},
 	"Incremental Dependency Graph": function() {
@@ -121,6 +125,9 @@ define([ "jquery",
 				     : "IDG");
 
       this.webstat('tab', label).IDG(options);
+    },
+    show_perfchart: function(options) {
+      this.webstat('tab', "Performance").perfchart(options);
     }
   }; // methods
 

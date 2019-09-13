@@ -6,7 +6,8 @@
     "laconic": "joestelmach/laconic#*",
     "requirejs": "jrburke/requirejs-bower#*",
     "sparkline": "gwatts/jquery.sparkline#*",
-    "svg-pan-zoom": "ariutta/svg-pan-zoom#*"
+    "svg-pan-zoom": "ariutta/svg-pan-zoom#*",
+    "jquery.flot.current": "*"
   },
   "engines": {
     "yarn": ">= 1.0.0"

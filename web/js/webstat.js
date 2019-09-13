@@ -7,7 +7,8 @@ require.config({
     laconic:            "../node_modules/laconic/laconic",
     bootstrap:          "../node_modules/bootstrap/dist/js/bootstrap.min",
     "svg-pan-zoom":     "../node_modules/svg-pan-zoom/dist/svg-pan-zoom.min",
-    sparkline:	        "../node_modules/sparkline/dist/jquery.sparkline"
+    sparkline:	        "../node_modules/sparkline/dist/jquery.sparkline",
+    flot:		"../node_modules/jquery.flot.current/jquery.flot"
   },
   shim:
   { bootstrap:

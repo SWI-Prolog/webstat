@@ -1,0 +1,8 @@
+.perfchart {
+  height: 100%;
+}
+
+.perfchart .flot {
+  width: 100%;
+  height: 100%;
+}
