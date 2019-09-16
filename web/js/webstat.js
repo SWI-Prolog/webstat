@@ -8,7 +8,8 @@ require.config({
     bootstrap:          "../node_modules/bootstrap/dist/js/bootstrap.min",
     "svg-pan-zoom":     "../node_modules/svg-pan-zoom/dist/svg-pan-zoom.min",
     sparkline:	        "../node_modules/sparkline/dist/jquery.sparkline",
-    flot:		"../node_modules/jquery.flot.current/jquery.flot"
+    flot:		"../node_modules/jquery.flot.current/jquery.flot",
+    palette:		"../node_modules/google-palette/palette"
   },
   shim:
   { bootstrap:

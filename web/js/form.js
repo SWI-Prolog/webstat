@@ -91,4 +91,115 @@ define([ "jquery", "laconic" ],
     }
   };
 }(jQuery));
+
+  var form = {
+    widgets: {
+      glyphIcon: function(glyph) {
+	return $.el.span({class:"glyphicon glyphicon-"+glyph});
+      },
+
+      typeIcon: function(type) {
+	return $.el.span({class:"dropdown-icon type-icon "+type});
+      },
+
+      glyphIconButton: function(glyph, options) {
+	var attrs = {class:"btn", type:"button"};
+
+	if ( options.action ) attrs['data-action'] = options.action;
+	if ( options.title )  attrs.title          = options.title;
+	if ( options.class )  attrs.class	  += " "+options.class;
+
+	return $.el.button(attrs, form.widgets.glyphIcon(glyph));
+      },
+
+      checkbox: function(name, options) {
+	var opts = {type:"checkbox", name:name};
+	var lopts = {};
+
+	if ( options.checked )
+	  opts.checked="checked";
+	if ( options.color )
+	  lopts.style="color:"+options.color;
+
+	return $.el.div({class:"checkbox"},
+			$.el.label(lopts,
+				   $.el.input(opts),
+				   options.label||name));
+      },
+
+      /**
+       * Turn an icon into a dropdown button.
+       * @param {Object} options
+       * @param {Any}	 options.client is the `this` for the menu
+       *		 functions.
+       * @param {String} [options.divClass] additional class for the
+       * returned `div` element
+       * @param {String} [options.ulClass] additional class for the
+       * `ul` element that defines the menu.
+       * @param {Object} [options.actions] defines the menu items.
+       * this is passed to populateMenu()
+       * @returns {DIV} the downdown button
+       */
+      dropdownButton: function(icon, options) {
+	if ( !options ) options = {};
+	var cls     = options.divClass;
+	var ulClass = options.ulClass;
+
+	var dropdown = $.el.div(
+	  {class: "btn-group dropdown"+(cls?" "+cls:"")},
+	  $.el.button(
+	    {class:"dropdown-toggle",
+	     "data-toggle":"dropdown"},
+	    icon),
+	  $.el.ul({class:"dropdown-menu"+(ulClass?" "+ulClass:"")}));
+
+	if ( options.actions )
+	  form.widgets.populateMenu($(dropdown), options.client, options.actions);
+
+	return dropdown;
+      },
+
+      populateMenu: function(menu, client, actions) {
+	var ul = menu.find(".dropdown-menu");
+	var data = ul.data("menu")||{};
+
+	function runMenu(ev, a) {
+	  var action = $(a).data('action');
+
+	  if ( action )
+	    action.call(client, a);
+	}
+
+	function addMenuItem(label, onclick) {
+	  if ( onclick !== undefined ) {
+	    if ( label.indexOf("--") == 0 ) {
+	      ul.append($.el.li({class:"divider"}));
+	    } else {
+	      var a = $.el.a(label);
+
+	      $(a).data('action', onclick);
+	      ul.append($.el.li(a));
+	    }
+	  }
+	}
+
+	for(var a in actions) {
+	  if ( actions.hasOwnProperty(a) ) {
+	    addMenuItem(a, actions[a]);
+	  }
+	}
+
+	if ( !data.bound ) {
+	  data.bound = true;
+	  ul.on("click", "a", function(ev) { runMenu(ev, this); } );
+	}
+
+	ul.data("menu", data);
+
+	return menu;
+      }
+    }
+  };
+
+  return form;
 });

@@ -62,7 +62,7 @@ define([ "jquery",
   var defaults = {
     menu: {
       "Show":
-      { "Performance": function() {
+      { "Resource usage": function() {
 	  $("body").webstat('show_perfchart');
 	},
 	"Tabled predicates": function() {
@@ -127,7 +127,7 @@ define([ "jquery",
       this.webstat('tab', label).IDG(options);
     },
     show_perfchart: function(options) {
-      this.webstat('tab', "Performance").perfchart(options);
+      this.webstat('tab', "Resource usage").perfchart(options);
     }
   }; // methods
 

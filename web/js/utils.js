@@ -139,6 +139,31 @@ define(["jquery"],
       return ago + " years ago";
     },
 
+    human_size(bytes) {
+      var val;
+      var unit;
+
+      if ( bytes < 1024 )
+	return bytes+" b";
+
+      if ( bytes < 1024*1024 ) {
+	val = bytes/1024;
+	unit = "K";
+      } else if ( bytes < 1024*1024*1024 ) {
+	val = bytes/(1024*1024);
+	unit = "M";
+      } else if ( bytes < 1024*1024*1024*1024 ) {
+	val = bytes/(1024*1024*1024);
+	unit = "G";
+      }
+
+      return val.toFixed(val < 100 ? 1 : 0) + unit + "b";
+    },
+
+    human_count(count) {
+      return new Intl.NumberFormat('en-US', {}).format(count);
+    },
+
     basename: function(path) {
       return path ? path.split('/').pop() : null;
     }

@@ -48,11 +48,15 @@
 %   objects with minimally a `name` field.
 
 perf_series(_Request) :-
-    findall(Name-Props, stat_series(Name, Props), Pairs),
-    dict_create(Series, json, Pairs),
-    reply_json(json{ series:Series,
+    findall(Series, stat_series(Series), SeriesList),
+    reply_json(json{ series:SeriesList,
                      rate:1
                    }).
+
+stat_series(Dict) :-
+    stat_series(Name, Props),
+    Dict = Props.put(name, Name).
+
 
 %!  perf_sample(+Request)
 %
@@ -67,15 +71,46 @@ perf_sample(Request) :-
 
 stat_series(global,
             _{ label: "Global stack",
-               color: "#f00"
+               unit:  bytes
              }).
 stat_series(trail,
             _{ label: "Trail stack",
-               color: "#0f0"
+               unit:  bytes
              }).
 stat_series(local,
             _{ label: "Local stack",
-               color: "#00f"
+               unit:  bytes
+             }).
+stat_series(stack,
+            _{ label: "Total stack usage",
+               unit:  bytes,
+               active: true
+             }).
+
+stat_series(atoms,
+            _{ label: "Atoms"
+             }).
+stat_series(functors,
+            _{ label: "Functors"
+             }).
+
+stat_series(modules,
+            _{ label: "Modules"
+             }).
+stat_series(predicates,
+            _{ label: "Predicates"
+             }).
+stat_series(clauses,
+            _{ label: "clauses"
+             }).
+
+stat_series(tables,
+            _{ label: "Tables"
+             }).
+stat_series(table_space,
+            _{ label: "Table space",
+               unit:  bytes,
+               active: true
              }).
 
 perf_sample_data(Data) :-
@@ -92,3 +127,24 @@ stat(trail, Value) :-
     statistics(trailused, Value).
 stat(local, Value) :-
     statistics(localused, Value).
+stat(stack, Value) :-
+    statistics(stack, Value).
+
+stat(atoms, Value) :-
+    statistics(atoms, Value).
+stat(functors, Value) :-
+    statistics(functors, Value).
+
+stat(modules, Value) :-
+    statistics(modules, Value).
+stat(predicates, Value) :-
+    statistics(predicates, Value).
+stat(clauses, Value) :-
+    statistics(clauses, Value).
+
+stat(tables, Value) :-
+    aggregate_all(sum(C), ('$tbl_variant_table'(VariantTrie),
+                           trie_property(VariantTrie, value_count(C))),
+                  Value).
+stat(table_space, Value) :-
+     statistics(table_space_used, Value).

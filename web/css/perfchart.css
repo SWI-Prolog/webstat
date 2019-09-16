@@ -1,8 +1,49 @@
 .perfchart {
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
+.hsplit_lp {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.series {
+  white-space: nowrap;
+  padding: 2ex;
+}
+
+span.menu-space
+{ width: 2ex;
+  float: left;
+  display: inline-block;
+}
+
+label.sample-rate { margin-left: 2ex; margin-right: 1ex; }
+
+.perfchart .controller { margin-top: 5px; text-align: center; }
+
 .perfchart .flot {
+  min-width: 50px;
+  min-height: 20px;
   width: 100%;
   height: 100%;
+  flex-grow: 1;
+}
+
+#flot-tooltip {
+  position: absolute;
+  display: none;
+  border: 1px solid #fdd;
+  padding: 2px;
+  background-color: #fee;
+  opacity: 0.80;
+}
+
+#flot-tooltip table td {
+  padding-left: 5px;
+  text-align: right;
+  font-family: Monospace;
 }

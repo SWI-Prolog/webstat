@@ -42,13 +42,13 @@
  * @requires jquery
  */
 
-define([ "jquery", "config", "flot", "laconic" ],
-       function($, config, plot) {
+define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
+       function($, config, plot, utils, form) {
 
 (function($) {
   var pluginName = 'perfchart';
 
-  var plotopts = {
+  var plot_default_options = {
     xaxis: {
       min: 0,
       max: 1000
@@ -60,6 +60,7 @@ define([ "jquery", "config", "flot", "laconic" ],
 	       1000000,10000000,100000000,1000000000,
 	       10000000000
 	     ],
+      tickFormatter: suffixFormatter,
       transform: function(v) {return Math.log(v+1);}
     },
     grid: {
@@ -73,11 +74,25 @@ define([ "jquery", "config", "flot", "laconic" ],
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
+	var hsplit;
 
 	elem.data(pluginName, data);	/* store with element */
-	elem.addClass("perfchart");
-	elem.append($.el.div({class:"flot"}));
+	elem.addClass("perfchart reactive-size listen-close-event");
+	elem[pluginName]('controller');
+	elem.append(hsplit=$($.el.div({class: "hsplit_lp"})));
+	elem[pluginName]('series_menu');
+	hsplit.append($.el.div({class:"flot"}));
 	elem[pluginName]('tooltip');
+	elem.on('reactive-resize', function() {
+	  elem[pluginName]('resize');
+	});
+	elem.on('tab-close', function() {
+	  if ( data.timer ) {
+	    clearInterval(data.timer);
+	    delete(data.timer);
+	  }
+	});
+
 
 	$.get(config.http.locations.perf_series,
 	      function(data) {
@@ -87,36 +102,170 @@ define([ "jquery", "config", "flot", "laconic" ],
     },
 
     /**
-     * Initialize the data series and flot instance
+     * Initialize the data series and flot instance from the reported
+     * available series.
      */
     series: function(options) {
       var elem = $(this);
       var data = elem.data(pluginName);
+      var colors = palette("mpn65", options.series.length);
 
       data.rate      = Math.round((options.rate||1)*1000);
-      data.series    = options.series;
+      data.series    = {};
       data.x	     = 0;
+      data.samples   = Math.round(elem.width()/2);
       data.flot_data = [];
+      data.flot_opts = $.extend(true, {}, plot_default_options);
 
-      for(var p in options.series) {
-	if ( options.series.hasOwnProperty(p) ) {
-	  var series = options.series[p];
-	  var i = data.flot_data.length;
+      data.flot_opts.xaxis.max = data.flot_opts.xaxis.min + data.samples;
 
-	  series.index = i;
-	  series.data  = [];
+      for(var i=0; i<options.series.length; i++) {
+	var series = options.series[i];
 
+	series.data  = [];
+	if ( !series.label )
+	  series.label = series.name;
+	if ( !series.color )
+	  series.color = "#"+colors[i];
+
+	data.series[series.name] = series;
+	if ( series.active ) {
+	  var idx = data.flot_data.length;
+	  series.index = idx;
 	  data.flot_data.push(series);
 	}
       }
 
-      data.plot = $.plot(elem.find(".flot"), data.flot_data, plotopts);
+      elem[pluginName]('series_menu');
+
+      data.plot = $.plot(elem.find(".flot"), data.flot_data, data.flot_opts);
       data.plot.setupGrid();
       elem[pluginName]('update');
+      elem[pluginName]('play', true);
+    },
 
-      setInterval(function() {
-	elem[pluginName]('update');
-      }, data.rate);
+    activate_series: function(name, val) {
+      var elem   = $(this);
+      var data   = $(this).data(pluginName);
+      var series = data.series[name];
+
+      if ( val ) {
+	var idx = data.flot_data.length;
+	series.index = idx;
+	data.flot_data.push(series);
+      } else {
+	data.flot_data.splice(series.index, 1);
+	for(var i=0; i<data.flot_data.length; i++)
+	  data.flot_data[i].index = i;
+      }
+
+      data.plot.setData(data.flot_data);
+      data.plot.setupGrid();
+      data.plot.draw();
+    },
+
+    /**
+     * Start collecting the chart.
+     * @param {Any} how is one of `false`, `true` or #milliseconds
+     */
+    play: function(how) {
+      var elem  = $(this);
+      var data  = $(this).data(pluginName);
+      var clear = (how == false);
+
+      if ( typeof how == "number" ) {
+	data.rate = how;
+	how = true;
+	clear = true;
+      }
+
+      if ( clear && data.timer ) {
+	clearInterval(data.timer);
+	data.timer = null;
+      }
+
+      if ( how == true && !data.timer ) {
+	data.timer = setInterval(function() {
+	  elem[pluginName]('update');
+	}, data.rate);
+      }
+    },
+
+    controller: function() {
+      var elem = $(this);
+      var data = $(this).data(pluginName);
+      var ctrl;
+      var br;
+      var play;
+      var pause, clear;
+
+      elem.append(ctrl=$($.el.div({class:"form-inline controller"})));
+      ctrl.append(br=$($.el.div({class:"btn-group"})));
+      br.append(clear=$(form.widgets.glyphIconButton("step-backward", {})),
+		$("<span class='menu-space'>&nbsp</span>"),
+		play =$(form.widgets.glyphIconButton("play", {})),
+		pause=$(form.widgets.glyphIconButton("pause", {})));
+
+      play.on("click", function()  { elem[pluginName]('play', true); });
+      pause.on("click", function() { elem[pluginName]('play', false); });
+      clear.on("click", function() { elem[pluginName]('clear'); });
+
+      br.append($.el.label({class:"sample-rate"}, "Sample rate:"));
+      br.append(sel=$($.el.select({class:"form-control"})));
+
+      sel.on('change', function() {
+	elem[pluginName]('play', this.value*1000);
+      });
+
+      function opt(time, label, def) {
+	var opts = {"value":time};
+	if ( def ) opts.selected = "selected";
+
+	sel.append($.el.option(opts, label));
+      }
+
+      opt(0.2, "0.2 sec");
+      opt(0.5, "0.5 sec");
+      opt(1.0, "1 sec", true);
+      opt(2.0, "2 sec");
+      opt(5.0, "5 sec");
+      opt(10.0, "10 sec");
+      opt(60.0, "1 min");
+      opt(120.0, "2 min");
+      opt(300.0, "5 min");
+    },
+
+    series_menu: function() {
+      var elem = $(this);
+      var data = $(this).data(pluginName);
+      var lbl = $.el.label("Show: ");
+      var menu;
+
+      if ( (menu=elem.find("div.series")) && menu.length > 0 ) {
+	menu.empty().append(lbl);
+      } else {
+	elem.find(".hsplit_lp").append(menu=$($.el.div({class:"series"}, lbl)));
+	menu.on("change", "input", function(ev) {
+	  var name    = $(ev.target).attr('name');
+	  var checked = $(ev.target).prop('checked') == true;
+
+	  elem[pluginName]('activate_series', name, checked);
+	});
+      }
+
+      if ( data.series ) {
+	for(var p in data.series) {
+	  if ( data.series.hasOwnProperty(p) ) {
+	    var series = data.series[p];
+
+	    menu.append(form.widgets.checkbox(series.name,
+					      { checked: series.active,
+						color: series.color,
+						label: series.label
+					      }));
+	  }
+	}
+      }
     },
 
     /**
@@ -133,9 +282,30 @@ define([ "jquery", "config", "flot", "laconic" ],
 
 	if ( data.flot_data[0] && data.flot_data[0].data &&
 	     data.flot_data[0].data[x] ) {
-	  var global = data.flot_data[0].data[x][1];
+	  var t  = $.el.table();
 
-	  $("#flot-tooltip").html("Global = "+global)
+	  $("#flot-tooltip").empty().append(t);
+
+	  for(var i=0; i<data.flot_data.length; i++) {
+	    var series = data.flot_data[i];
+	    var str;
+
+	    if ( series.data[x] ) {
+	      var value  = series.data[x][1];
+
+	      if ( series.unit == 'bytes' )
+		str = utils.human_size(value);
+	      else
+		str = utils.human_count(value);
+	    } else {
+	      str = "n/a";
+	    }
+
+	    t.append($.el.tr($.el.th(series.label),
+			     $.el.td(str)));
+	  }
+
+	  $("#flot-tooltip")
 	      .css({top: pos.pageY+5, left: pos.pageX+5})
 	      .show();
 	} else {
@@ -160,28 +330,96 @@ define([ "jquery", "config", "flot", "laconic" ],
       var data   = $(this).data(pluginName);
       var sample = options.sample||{};
       var x      = data.x++;
+      var xaxis  = data.plot.getAxes().xaxis;
+      var rm;
 
-      for(var p in sample) {
-	if ( sample.hasOwnProperty(p) ) {
-	  data.flot_data[data.series[p].index].data[x] = [x, sample[p]];
+      if ( x > xaxis.options.max ) {
+	rm = x - xaxis.options.max;
+	xaxis.options.max += rm;
+	xaxis.options.min += rm;
+      } else
+	rm = 0;
+
+      for(var p in data.series) {
+	if ( data.series.hasOwnProperty(p) ) {
+	  var series = data.series[p];
+
+	  if ( sample[p] ) {
+	    if ( rm )
+	      series.data.splice(0, rm);
+	    series.data.push([x, sample[p]]);
+	  }
 	}
       }
 
       data.plot.setData(data.flot_data);
       data.plot.setupGrid();			/* remove if grid is fixed */
       data.plot.draw();
+    },
+
+    clear: function() {
+      var elem  = $(this);
+      var data  = elem.data(pluginName);
+
+      for(var p in data.series) {
+	if ( data.series.hasOwnProperty(p) ) {
+	  var series = data.series[p];
+	  series.data.splice(0);
+	}
+      }
+
+      data.x = 0;
+
+      data.plot.setData(data.flot_data);
+      data.plot.setupGrid();			/* remove if grid is fixed */
+      data.plot.draw();
+    },
+
+    resize: function() {
+      var elem  = $(this);
+      var data  = elem.data(pluginName);
+      var xaxis = data.plot.getAxes().xaxis;
+      var neww  = Math.round(elem.width()/2);
+      var min   = xaxis.options.min;
+
+      data.samples = neww;
+
+      if ( neww < data.x ) {
+	var newmin = data.x - neww;
+	var rm = newmin - min;
+
+	for(var p in data.series) {
+	  if ( data.series.hasOwnProperty(p) ) {
+	    var series = data.series[p];
+
+	    series.data.splice(0, rm);
+	  }
+	}
+
+	xaxis.options.max = data.x;
+	xaxis.options.min = newmin;
+      } else {
+	xaxis.options.max = xaxis.options.min + data.samples;
+      }
+
+      data.plot.resize();
+      data.plot.setupGrid();
+      data.plot.draw();
     }
   }; // methods
 
-  $("<div id='flot-tooltip'></div>").css({
-    position: "absolute",
-    display: "none",
-    border: "1px solid #fdd",
-    padding: "2px",
-    "background-color": "#fee",
-    opacity: 0.80
-  }).appendTo("body");
+  function suffixFormatter(val, axis) {
+    if (val >= 1000000000)
+      return (val / 1000000000).toFixed(axis.tickDecimals) + " Gb";
+    else if (val >= 1000000)
+      return (val / 1000000).toFixed(axis.tickDecimals) + " Mb";
+    else if (val >= 1000)
+      return (val / 1000).toFixed(axis.tickDecimals) + " Kb";
+    else
+      return val.toFixed(axis.tickDecimals) + " b";
+  }
 
+  $("<div id='flot-tooltip'></div>").appendTo("body");
 
   /**
    * <Class description>

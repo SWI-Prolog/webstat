@@ -216,6 +216,8 @@ var tabbed;
       var tab = $("#"+id);
       var new_active;
 
+      tab.find(".listen-close-event").trigger('tab-close');
+
       if ( tab.is(":visible") )
 	new_active = li.prev() || li.next();
       li.remove();
