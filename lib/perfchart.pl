@@ -39,6 +39,10 @@
 
 :- use_module(webstat(lib/util)).
 
+:- multifile
+    webstat:stat_series/2,
+    webstat:stat_value/2.
+
 :- http_handler(webstat_api('perf/sample'), perf_sample, [id(perf_sample)]).
 :- http_handler(webstat_api('perf/series'), perf_series, [id(perf_series)]).
 
@@ -53,6 +57,9 @@ perf_series(_Request) :-
                      rate:1
                    }).
 
+stat_series(Dict) :-
+    webstat:stat_series(Name, Props),
+    Dict = Props.put(name, Name).
 stat_series(Dict) :-
     stat_series(Name, Props),
     Dict = Props.put(name, Name).
@@ -118,8 +125,11 @@ perf_sample_data(Data) :-
     dict_create(Data, stat, Pairs).
 
 active_stat(Name, Value) :-
-    stat(Name, Value),
-    once(stat_series(Name, _)).
+    (   stat(Name, Value),
+        once(stat_series(Name, _))
+    ;   webstat:stat_value(Name, Value),
+        once(webstat:stat_series(Name, _))
+    ).
 
 stat(global, Value) :-
     statistics(globalused, Value).
