@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2014-2016, VU University Amsterdam
+    Copyright (C): 2014-2019, VU University Amsterdam
 			      CWI Amsterdam
     All rights reserved.
 
@@ -115,13 +115,16 @@ define([ "jquery", "laconic" ],
       checkbox: function(name, options) {
 	var opts = {type:"checkbox", name:name};
 	var lopts = {};
+	var dopts = {class:"checkbox"};
 
 	if ( options.checked )
 	  opts.checked="checked";
 	if ( options.color )
 	  lopts.style="color:"+options.color;
+	if ( options.title )
+	  dopts.title = options.title;
 
-	return $.el.div({class:"checkbox"},
+	return $.el.div(dopts,
 			$.el.label(lopts,
 				   $.el.input(opts),
 				   options.label||name));
