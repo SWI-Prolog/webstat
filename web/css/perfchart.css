@@ -13,6 +13,7 @@
 .series {
   white-space: nowrap;
   padding: 2ex;
+  overflow-y: auto;
 }
 
 span.menu-space

@@ -238,7 +238,7 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
     series_menu: function() {
       var elem = $(this);
       var data = $(this).data(pluginName);
-      var lbl = $.el.label("Show: ");
+      var lbl = $.el.label("Series");
       var menu;
 
       if ( (menu=elem.find("div.series")) && menu.length > 0 ) {
