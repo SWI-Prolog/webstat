@@ -286,13 +286,31 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 
 	  $("#flot-tooltip").empty().append(t);
 
+	  function val(ar, x) {
+	    if ( ar[0] ) {
+	      var x0 = ar[0][0];
+	      var x1 = x-x0;
+	      var mx = 5;
+
+	      while(!(ar[x1] && ar[x1][0] == x) && --mx >= 0) {
+		if ( x1 >= ar.length )
+		  x1 = ar.length-1;
+		else if ( x1 < 0 )
+		  x1 = 0;
+		else
+		  x1 += x-ar[x1][0];
+	      }
+
+	      if ( mx > 0 )
+		return ar[x1][1];
+	    }
+	  }
+
 	  for(var i=0; i<data.flot_data.length; i++) {
 	    var series = data.flot_data[i];
-	    var str;
+	    var value, str;
 
-	    if ( series.data[x] ) {
-	      var value  = series.data[x][1];
-
+	    if ( (value = val(series.data, x)) != undefined ) {
 	      if ( series.unit == 'bytes' )
 		str = utils.human_size(value);
 	      else
