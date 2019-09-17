@@ -261,7 +261,8 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 	    menu.append(form.widgets.checkbox(series.name,
 					      { checked: series.active,
 						color: series.color,
-						label: series.label
+						label: series.label,
+						title: series.title
 					      }));
 	  }
 	}
@@ -279,50 +280,50 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 		       function() { $("#flot-tooltip").hide(); });
       $(plotdiv).on("plothover", function (event, pos, item) {
 	var x = Math.round(pos.x);
+	var t  = $.el.table();
+	var hasval = 0;
 
-	if ( data.flot_data[0] && data.flot_data[0].data &&
-	     data.flot_data[0].data[x] ) {
-	  var t  = $.el.table();
+	function val(ar, x) {
+	  if ( ar[0] ) {
+	    var x0 = ar[0][0];
+	    var x1 = x-x0;
+	    var mx = 5;
 
-	  $("#flot-tooltip").empty().append(t);
-
-	  function val(ar, x) {
-	    if ( ar[0] ) {
-	      var x0 = ar[0][0];
-	      var x1 = x-x0;
-	      var mx = 5;
-
-	      while(!(ar[x1] && ar[x1][0] == x) && --mx >= 0) {
-		if ( x1 >= ar.length )
-		  x1 = ar.length-1;
-		else if ( x1 < 0 )
-		  x1 = 0;
-		else
-		  x1 += x-ar[x1][0];
-	      }
-
-	      if ( mx > 0 )
-		return ar[x1][1];
-	    }
-	  }
-
-	  for(var i=0; i<data.flot_data.length; i++) {
-	    var series = data.flot_data[i];
-	    var value, str;
-
-	    if ( (value = val(series.data, x)) != undefined ) {
-	      if ( series.unit == 'bytes' )
-		str = utils.human_size(value);
+	    while(!(ar[x1] && ar[x1][0] == x) && --mx >= 0) {
+	      if ( x1 >= ar.length )
+		x1 = ar.length-1;
+	      else if ( x1 < 0 )
+		x1 = 0;
 	      else
-		str = utils.human_count(value);
-	    } else {
-	      str = "n/a";
+		x1 += x-ar[x1][0];
 	    }
 
-	    t.append($.el.tr($.el.th(series.label),
-			     $.el.td(str)));
+	    if ( mx > 0 )
+	      return ar[x1][1];
+	  }
+	}
+
+	$("#flot-tooltip").empty().append(t);
+
+	for(var i=0; i<data.flot_data.length; i++) {
+	  var series = data.flot_data[i];
+	  var value, str;
+
+	  if ( (value = val(series.data, x)) != undefined ) {
+	    if ( series.unit == 'bytes' )
+	      str = utils.human_size(value);
+	    else
+	      str = utils.human_count(value);
+	    hasval++;
+	  } else {
+	    str = "n/a";
 	  }
 
+	  t.append($.el.tr($.el.th(series.label),
+			   $.el.td(str)));
+	}
+
+	if ( hasval > 0 ) {
 	  $("#flot-tooltip")
 	      .css({top: pos.pageY+5, left: pos.pageX+5})
 	      .show();
@@ -428,13 +429,13 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 
   function suffixFormatter(val, axis) {
     if (val >= 1000000000)
-      return (val / 1000000000).toFixed(axis.tickDecimals) + " Gb";
+      return (val / 1000000000).toFixed(axis.tickDecimals) + " G";
     else if (val >= 1000000)
-      return (val / 1000000).toFixed(axis.tickDecimals) + " Mb";
+      return (val / 1000000).toFixed(axis.tickDecimals) + " M";
     else if (val >= 1000)
-      return (val / 1000).toFixed(axis.tickDecimals) + " Kb";
+      return (val / 1000).toFixed(axis.tickDecimals) + " K";
     else
-      return val.toFixed(axis.tickDecimals) + " b";
+      return val.toFixed(axis.tickDecimals) + "  ";
   }
 
   $("<div id='flot-tooltip'></div>").appendTo("body");
