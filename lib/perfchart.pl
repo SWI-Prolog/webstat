@@ -36,6 +36,12 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
+:- if(exists_source(library(mallocinfo))).
+:- use_module(library(mallocinfo)).
+:- endif.
+:- if(exists_directory('/proc/self/fd')).
+:- use_module(procps).
+:- endif.
 
 :- use_module(webstat(lib/util)).
 
@@ -76,6 +82,10 @@ perf_sample(Request) :-
     in_thread(Thread, perf_sample_data(Data)),
     reply_json(json{sample:Data}).
 
+:- discontiguous
+    stat_series/2,
+    stat/2.
+
 stat_series(global,
             _{ label: "Global stack",
                unit:  bytes
@@ -109,6 +119,9 @@ stat_series(predicates,
              }).
 stat_series(clauses,
             _{ label: "clauses"
+             }).
+stat_series(codes,
+            _{ label: "VM instructions"
              }).
 
 stat_series(tables,
@@ -151,6 +164,8 @@ stat(predicates, Value) :-
     statistics(predicates, Value).
 stat(clauses, Value) :-
     statistics(clauses, Value).
+stat(codes, Value) :-
+    statistics(codes, Value).
 
 stat(tables, Value) :-
     aggregate_all(sum(C), ('$tbl_variant_table'(VariantTrie),
@@ -158,3 +173,49 @@ stat(tables, Value) :-
                   Value).
 stat(table_space, Value) :-
      statistics(table_space_used, Value).
+
+:- if(current_predicate(mallinfo/1)).
+
+stat_series(malloc,
+            _{ label: "Malloc in use",
+               title: "Malloc'ed memory in use",
+               unit:  bytes
+             }).
+stat_series(mfree,
+            _{ label: "Malloc free",
+               title: "Freed memory not reused",
+               unit:  bytes
+             }).
+:- if(current_predicate(procps_stat/1)).
+stat_series(rss,
+            _{ label: "RSS memory",
+               title: "Resident Set Size",
+               unit:  bytes
+             }).
+stat_series(heap,
+            _{ label: "Heap memory",
+               title: "RSS - stacks - free",
+               unit:  bytes
+             }).
+:- endif.
+
+stat(Stat, Value) :-
+    mallinfo(Dict),
+    mallinfo_stat(Stat, Dict, Value).
+
+mallinfo_stat(malloc, Dict, Value) :-
+    Value = Dict.uordblks.
+mallinfo_stat(mfree, Dict, Value) :-
+    Value = Dict.fordblks.
+:- if(current_predicate(procps_stat/1)).
+mallinfo_stat(Stat, Mallinfo, Value) :-
+    procps_stat(ProcPS),
+    procps_mallinfo_stat(Stat, Mallinfo, ProcPS, Value).
+
+procps_mallinfo_stat(heap, Mallinfo, ProcPS, Value) :-
+    statistics(stack, Stack),
+    Value is ProcPS.rss - Mallinfo.fordblks - Stack.
+procps_mallinfo_stat(rss, _Mallinfo, ProcPS, Value) :-
+    Value is ProcPS.rss.
+:- endif.
+:- endif.
