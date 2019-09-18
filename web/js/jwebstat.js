@@ -51,6 +51,7 @@ define([ "jquery",
 	 "tabbed",
 
 	 "tabled_preds",
+	 "tables",
 	 "IDG",
 	 "perfchart"
        ],
@@ -120,6 +121,10 @@ define([ "jquery",
     show_tabled_predicates: function(options) {
       this.webstat('tab', "Tabled predicates").tabled_preds(options);
     },
+    show_tables: function(options) {
+      this.webstat('tab', "Tables for "+options.predicate).tables(options);
+    },
+
     show_idg: function(options) {
       var label = (options.predicate ? "IDG for " + options.predicate
 				     : "IDG");

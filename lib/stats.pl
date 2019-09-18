@@ -38,7 +38,9 @@
             table_statistics/3,                 % :Goal, ?Key, ?Value
             table_statistics_dict/2,		% :Head, -Dict
             idg_predicate/1,			% -PI
-            idg_predicate_edge/4		% +From, +Dir, -To, -Count
+            idg_predicate_edge/4,		% +From, +Dir, -To, -Count
+            answer_table_property/2,		% +Table, ?Property
+            (table)/2				% :Goal, -Table
           ]).
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
@@ -142,34 +144,36 @@ avg(duplicate_ratio).
 variant_stat(Stat, V, Count) :-
     variant_trie_stat(Stat, _, Count, Property),
     table(V, T),
-    atrie_prop(T, Property).
+    answer_table_property(T, Property).
 
-atrie_prop(T, size(Bytes)) :-
+%!  answer_table_property(+Table, ?Property) is nondet.
+
+answer_table_property(T, size(Bytes)) :-
     '$trie_property'(T, size(Bytes)).
-atrie_prop(T, compiled_size(Bytes)) :-
+answer_table_property(T, compiled_size(Bytes)) :-
     '$trie_property'(T, compiled_size(Bytes)).
-atrie_prop(T, value_count(Count)) :-
+answer_table_property(T, value_count(Count)) :-
     '$trie_property'(T, value_count(Count)).
-atrie_prop(T, space_ratio(Values/Nodes)) :-
+answer_table_property(T, space_ratio(Values/Nodes)) :-
     '$trie_property'(T, value_count(Values)),
     Values > 0,
     '$trie_property'(T, node_count(Nodes)).
-atrie_prop(T, lookup_count(Count)) :-
+answer_table_property(T, lookup_count(Count)) :-
     '$trie_property'(T, lookup_count(Count)).
-atrie_prop(T, duplicate_ratio(Ratio)) :-
+answer_table_property(T, duplicate_ratio(Ratio)) :-
     '$trie_property'(T, value_count(Values)),
     Values > 0,
     '$trie_property'(T, lookup_count(Lookup)),
     Ratio is (Lookup - Values)/Values.
-atrie_prop(T, gen_call_count(Count)) :-
+answer_table_property(T, gen_call_count(Count)) :-
     '$trie_property'(T, gen_call_count(Count)).
-atrie_prop(T, invalidated(Count)) :-
+answer_table_property(T, invalidated(Count)) :-
     '$trie_property'(T, invalidated(Count)).
-atrie_prop(T, reevaluated(Count)) :-
+answer_table_property(T, reevaluated(Count)) :-
     '$trie_property'(T, reevaluated(Count)).
-atrie_prop(T, falsecount(Count)) :-
+answer_table_property(T, falsecount(Count)) :-
     '$idg_falsecount'(T, Count).
-atrie_prop(T, variables(Count)) :-
+answer_table_property(T, variables(Count)) :-
     '$tbl_table_status'(T, _Status, _Wrapper, Skeleton),
     functor(Skeleton, ret, Count).
 

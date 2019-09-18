@@ -256,6 +256,9 @@ define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
 		  elem.form('button_row', {
 		    "Show IDG": function() {
 		      ws.webstat('show_idg', { predicate: pred });
+		    },
+		    "Show tables": function() {
+		      ws.webstat('show_tables', { predicate: pred });
 		    }
 		  });
 		});
