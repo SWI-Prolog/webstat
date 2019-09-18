@@ -37,9 +37,12 @@
             pred_detail_dict/3                  % :Goal, -Dict, +Options
           ]).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_json)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(option)).
+:- use_module(library(prolog_code)).
+:- use_module(library(aggregate)).
 
 :- use_module(webstat(lib/util)).
 :- use_module(webstat(lib/stats)).
@@ -56,8 +59,8 @@ pred_details(Request) :-
     pi_head(PI, Pred),
     pred_detail_dict(Pred, Dict, [thread(Thread)]),
     phrase(pred_details(Dict, []), Tokens),
-    format('Content-type: text/html~n~n'),
-    print_html(Tokens).
+    with_output_to(string(HTML), print_html(Tokens)),
+    reply_json(Dict.put(html,HTML)).
 
 pred_details(Dict, Options) -->
     html(table(class([table, 'table-striped', 'pred-details']),
@@ -88,7 +91,8 @@ pred_props([H|T], Dict, Options) -->
 
 opt_pred_detail_rows(Dict, Options) -->
     pred_source(Dict, Options),
-    pred_tabled(Dict, Options).
+    pred_tabled(Dict, Options),
+    pred_idg(Dict, Options).
 
 pred_source(Dict, _Options) -->
     { _{file:File, line:Line} :< Dict.get(source) },
@@ -105,22 +109,33 @@ pred_tabled(Dict, _Options) -->
     { Tables = Dict.get(tabled) },
     html(tr([ th('Tabled'),
               td(class(piped),
-                 [ \table_count(Tables, tables,  '~D tables',  true),
-                   \table_count(Tables, answers, '~D answers', true)
+                 [ \dict_count(Tables, tables,  '~D tables',  true),
+                   \dict_count(Tables, answers, '~D answers', true)
                  ])
             ])),
     !.
 pred_tabled(_, _) --> [].
 
-table_count(Tables, Name, Format, Cond) -->
-    { Count = Tables.get(Name),
+pred_idg(Dict, _Options) -->
+    { IDG = Dict.get(idg) },
+    html(tr([ th('IDG'),
+              td(class(piped),
+                 [ \dict_count(IDG, affected,  '~D affected',  gt(0)),
+                   \dict_count(IDG, dependent, '~D dependent', gt(0))
+                 ])
+            ])),
+    !.
+pred_idg(_, _) --> [].
+
+dict_count(Dict, Name, Format, Cond) -->
+    { Count = Dict.get(Name),
       (   Cond == true
-      ;   Cond == gt(N), Count > N
+      ;   Cond = gt(N), Count > N
       )
     },
     !,
     html(span(class('table-prop'), Format-[Count])).
-table_count(_, _, _, _) --> [].
+dict_count(_, _, _, _) --> [].
 
 
 %!  pred_detail_dict(:Goal, -Dict, +Options) is det.
@@ -159,8 +174,19 @@ pred_detail(Pred, clause_count, Count) :-
     ).
 pred_detail(Pred, tabled, Tables) :-
     predicate_property(Pred, tabled),
-    table_statistics_dict(Pred, Tables).
+    table_statistics_dict(Pred, Tables0),
+    del_dict(variant, Tables0, _, Tables).
+pred_detail(Pred, idg, idg{ affected:Affected,
+                            dependent:Dependent
+                          }) :-
+    predicate_property(Pred, tabled),
+    predicate_property(Pred, incremental),
+    idg_pred_count(Pred, affected, Affected),
+    idg_pred_count(Pred, dependent, Dependent).
 
+idg_pred_count(Pred, Dir, Count) :-
+    pi_head(PI, Pred),
+    aggregate_all(count, idg_predicate_edge(PI, Dir, _, _), Count).
 
 pred_bool_option(multifile).
 pred_bool_option(discontiguous).

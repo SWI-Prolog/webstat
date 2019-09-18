@@ -252,7 +252,7 @@ define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
 	  $.get(config.http.locations.predicate_details,
 		query,
 		function(data) {
-		  elem.html(data);
+		  elem.html(data.html);
 		  elem.form('button_row', {
 		    "Show IDG": function() {
 		      ws.webstat('show_idg', { predicate: pred });
