@@ -53,6 +53,7 @@ define([ "jquery",
 	 "tabled_preds",
 	 "tables",
 	 "IDG",
+	 "listing",
 	 "perfchart"
        ],
        function($, modal, config) {
@@ -139,8 +140,7 @@ define([ "jquery",
       this.webstat('tab', "Resource usage").perfchart(options);
     },
     listing: function(options) {
-      alert("Not yet implemented");
-      //this.webstat('tab', "Listing for + options.predicate").listing(options);
+      this.webstat('tab', "Listing for " + options.predicate).listing(options);
     }
   }; // methods
 

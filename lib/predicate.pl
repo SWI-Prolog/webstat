@@ -49,7 +49,7 @@
 
 :- http_handler(webstat('html/predicate/details'), pred_details,
                 [id(predicate_details)]).
-:- http_handler(webstat('html/predicate/edit'), pred_edit,
+:- http_handler(webstat('edit/predicate'), pred_edit,
                 [id(edit_predicate)]).
 
 pred_details(Request) :-
