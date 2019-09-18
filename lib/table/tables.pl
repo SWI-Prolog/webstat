@@ -107,7 +107,7 @@ table_propdef(space,           Value, size(Value)).
 table_propdef(duplicate_ratio, Value, duplicate_ratio(Value)).
 table_propdef(space_ratio,     Value, space_ratio(Value)).
 table_propdef(complete_call,   Value, gen_call_count(Value)).
-table_propdef(compiled_space,  Value, compiled_space(Value)).
+table_propdef(compiled_space,  Value, compiled_size(Value)).
 table_propdef(variables,       Value, variables(Value)).
 
 variant_string(Variant, String) :-

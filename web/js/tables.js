@@ -91,7 +91,7 @@ define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
      },
      { title:"Answers",
        field:"answers",
-       headerTooltip:"# answers summed over variants"
+       headerTooltip:"# answers in table"
      },
      { title:"Compl. calls",
        field:"complete_call",
@@ -103,21 +103,25 @@ define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
        formatter:"money",
        formatterParams:{precision:2}
      },
+     { title:"Variables",
+       field:"variables",
+       headerTooltip:"# variables in variant"
+     },
      { title:"Invalidated",
        field:"invalidated",
-       headerTooltip:"# invalidated tables"
+       headerTooltip:"Times invalidated"
      },
      { title:"Reeval",
        field:"reevaluated",
-       headerTooltip:"# reevaluated tables"
+       headerTooltip:"Times Reevaluated"
      },
      { title:"Memory",
        field:"space",
-       headerTooltip:"Memory used for answer tables"
+       headerTooltip:"Memory used for table"
      },
      { title:"Comp. mem.",
        field:"compiled_space",
-       headerTooltip:"Memory used for compiled answer tables"
+       headerTooltip:"Memory used for compiled table"
      },
      { title:"Space ratio",
        field:"space_ratio",

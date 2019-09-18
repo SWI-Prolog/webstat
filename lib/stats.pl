@@ -129,12 +129,10 @@ hidden_stat(reevaluated, Variant) :-
     \+ predicate_property(Variant, tabled(incremental)).
 hidden_stat(answers,         Variant) :- \+ predicate_property(Variant, tabled).
 hidden_stat(size,            Variant) :- \+ predicate_property(Variant, tabled).
-hidden_stat(compiled_size,   Variant) :- \+ predicate_property(Variant, tabled).
 hidden_stat(value_count,     Variant) :- \+ predicate_property(Variant, tabled).
 hidden_stat(space_ratio,     Variant) :- \+ predicate_property(Variant, tabled).
 hidden_stat(lookup_count,    Variant) :- \+ predicate_property(Variant, tabled).
 hidden_stat(duplicate_ratio, Variant) :- \+ predicate_property(Variant, tabled).
-hidden_stat(gen_call_count,  Variant) :- \+ predicate_property(Variant, tabled).
 hidden_stat(complete_call,   Variant) :- \+ predicate_property(Variant, tabled).
 hidden_stat(compiled_space,  Variant) :- \+ predicate_property(Variant, tabled).
 
