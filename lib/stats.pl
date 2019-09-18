@@ -34,6 +34,7 @@
 
 :- module(webstat_stats,
           [ tabled_predicate_with_tables/1,	% ?Head
+            dynamic_incremental_predicate/1,	% ?Head
             table_statistics/3,                 % :Goal, ?Key, ?Value
             table_statistics_dict/2,		% :Head, -Dict
             idg_predicate/1,			% -PI
@@ -48,6 +49,7 @@
 
 :- meta_predicate
     tabled_predicate_with_tables(:),
+    dynamic_incremental_predicate(:),
     table_statistics_dict(:, -),
     idg_predicate_edge(:,+,-,-).
 
@@ -60,6 +62,16 @@ tabled_predicate_with_tables(Pred) :-
     \+ predicate_property(Pred, imported_from(_)),
     \+ \+ table(Pred, _).
 
+%!  dynamic_incremental_predicate(Pred) :-
+%
+%   True if Pred is a dynamic incremental predicate
+
+dynamic_incremental_predicate(Pred) :-
+    predicate_property(Pred, incremental),
+    predicate_property(Pred, dynamic),
+    \+ predicate_property(Pred, imported_from(_)).
+
+
 %!  table_statistics_dict(:Goal, -Dict) is det.
 %
 %   True when Dict represents summary information for all tables that
@@ -70,6 +82,8 @@ table_statistics_dict(Goal, Dict) :-
     dict_create(Dict, table_stat, [variant-Goal|Pairs]).
 
 %!  table_statistics(:Goal, ?Key, ?Value) is nondet.
+%
+%   Provide statistics on the predicate referenced by Goal.
 
 table_statistics(Variant, Stat, Value) :-
     (   var(Stat)
@@ -80,6 +94,9 @@ table_statistics(Variant, Stat, Value) :-
 
 table_statistics_(Variant, tables, NTables) :-
     aggregate_all(count, table(Variant, _), NTables).
+table_statistics_(Variant, clauses, NClauses) :-
+    \+ predicate_property(Variant, tabled),
+    predicate_property(Variant, number_of_clauses(NClauses)).
 table_statistics_(Variant, invalid, NTables) :-
     aggregate_all(count,
                   ( table(Variant, ATrie),
@@ -100,12 +117,24 @@ table_statistics_(Variant, Stat, Total) :-
 
 hidden_stat(variables, _).
 hidden_stat(lookup, _).
+hidden_stat(_, Variant) :-
+    \+ callable(Variant),
+    !,
+    fail.
 hidden_stat(invalidated, Variant) :-
-    callable(Variant),
     \+ predicate_property(Variant, incremental).
 hidden_stat(reevaluated, Variant) :-
-    callable(Variant),
     \+ predicate_property(Variant, tabled(incremental)).
+hidden_stat(answers,         Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(size,            Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(compiled_size,   Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(value_count,     Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(space_ratio,     Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(lookup_count,    Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(duplicate_ratio, Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(gen_call_count,  Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(complete_call,   Variant) :- \+ predicate_property(Variant, tabled).
+hidden_stat(compiled_space,  Variant) :- \+ predicate_property(Variant, tabled).
 
 avg(space_ratio).
 avg(duplicate_ratio).

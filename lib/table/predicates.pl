@@ -58,18 +58,20 @@ table_predicates(Request) :-
 
 predicate_data(Data) :-
     Pred = (_:_),
-    findall(Dict,
-            ( tabled_predicate_with_tables(Pred),
-              table_statistics_dict(Pred, Dict0),
-              pred_to_json_dict(Dict0, Dict)
-            ),
-            Data).
+    findall(Dict, predicate_data_dict(Pred, Dict), Data).
+
+predicate_data_dict(Pred, Dict) :-
+    (   tabled_predicate_with_tables(Pred)
+    ;   dynamic_incremental_predicate(Pred)
+    ),
+    table_statistics_dict(Pred, Dict0),
+    pred_to_json_dict(Dict0, Dict).
 
 pred_to_json_dict(Dict0, Dict) :-
     Head = Dict0.variant,
     pi_head(PI, Head),
     term_string(PI, String),
-    (   predicate_property(Head, tabled(incremental))
+    (   predicate_property(Head, incremental)
     ->  Incr = true
     ;   Incr = false
     ),
@@ -81,9 +83,14 @@ pred_to_json_dict(Dict0, Dict) :-
     ->  Subs = true
     ;   Subs = false
     ),
+    (   predicate_property(Head, dynamic)
+    ->  Dyn = true
+    ;   Dyn = false
+    ),
     Dict = Dict0.put(_{ variant:String,
                         incremental:Incr,
                         shared:Shared,
-                        subsumptive:Subs
+                        subsumptive:Subs,
+                        dynamic:Dyn
                       }).
 

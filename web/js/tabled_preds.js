@@ -87,6 +87,11 @@ define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
      { title:"Predicate",
        field:"variant"
      },
+     { title:"D",
+       field:"dynamic",
+       sorter:"boolean",
+       headerTooltip:"Dynamic"
+     },
      { title:"I",
        field:"incremental",
        sorter:"boolean",
@@ -110,6 +115,10 @@ define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
        field:"answers",
        headerTooltip:"# answers summed over variants"
      },
+     { title:"Clauses",
+       field:"clauses",
+       headerTooltip:"# clauses for incremental dynamic predicates"
+     },
      { title:"Compl. calls",
        field:"complete_call",
        headerTooltip:"# calls to a complete table"
@@ -124,7 +133,7 @@ define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
        field:"invalid",
        headerTooltip:"# invalid tables"
      },
-     { title:"Invaluated",
+     { title:"Invalidated",
        field:"invalidated",
        headerTooltip:"# invalidated tables"
      },
