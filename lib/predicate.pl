@@ -49,6 +49,8 @@
 
 :- http_handler(webstat('html/predicate/details'), pred_details,
                 [id(predicate_details)]).
+:- http_handler(webstat('html/predicate/edit'), pred_edit,
+                [id(edit_predicate)]).
 
 pred_details(Request) :-
     http_parameters(Request,
@@ -76,7 +78,8 @@ pred_detail_rows(Dict, Options) -->
                                ], Dict, Options))
               ]),
            tr([ th('Number of clauses'),
-                td(class(count), Dict.clause_count)
+                td(class(count), Dict.clause_count),
+                \action(listing, 'List clauses')
               ])
          | \opt_pred_detail_rows(Dict, Options)
          ]).
@@ -101,7 +104,8 @@ pred_source(Dict, _Options) -->
               td([ span(class(file), File),
                    :,
                    span(class(line), Line)
-                 ])
+                 ]),
+              \action(edit, 'Edit')
             ])).
 pred_source(_, _) --> [].
 
@@ -111,7 +115,8 @@ pred_tabled(Dict, _Options) -->
               td(class(piped),
                  [ \dict_count(Tables, tables,  '~D tables',  true),
                    \dict_count(Tables, answers, '~D answers', true)
-                 ])
+                 ]),
+              \action(show_tables, 'Show tables')
             ])),
     !.
 pred_tabled(_, _) --> [].
@@ -120,9 +125,10 @@ pred_idg(Dict, _Options) -->
     { IDG = Dict.get(idg) },
     html(tr([ th('IDG'),
               td(class(piped),
-                 [ \dict_count(IDG, affected,  '~D affected',  gt(0)),
-                   \dict_count(IDG, dependent, '~D dependent', gt(0))
-                 ])
+                 [ \dict_count(IDG, affected,  '~D affected predicates', gt(0)),
+                   \dict_count(IDG, dependent, '~D dependent predicates',gt(0))
+                 ]),
+              \action(show_idg, 'Show IDG')
             ])),
     !.
 pred_idg(_, _) --> [].
@@ -137,11 +143,29 @@ dict_count(Dict, Name, Format, Cond) -->
     html(span(class('table-prop'), Format-[Count])).
 dict_count(_, _, _, _) --> [].
 
+action(Name, Label) -->
+    html(td(button([class(btn), 'data-action'(Name)], Label))).
+
+%!  pred_edit(+Request)
+%
+%   Edit the given predicate
+
+pred_edit(Request) :-
+    http_parameters(Request,
+                    [ pi(PIS, [])
+                    ]),
+    pi_string_pi(PIS, PI),
+    edit(PI).
+
+		 /*******************************
+		 *          COLLECT DATA	*
+		 *******************************/
 
 %!  pred_detail_dict(:Goal, -Dict, +Options) is det.
 
 pred_detail_dict(Pred, Dict, Options) :-
     (   predicate_property(Pred, thread_local)
+    ;   predicate_property(Pred, incremental)
     ;   predicate_property(Pred, tabled),
         \+ predicate_property(Pred, tabled(shared))
     ),
@@ -179,7 +203,6 @@ pred_detail(Pred, tabled, Tables) :-
 pred_detail(Pred, idg, idg{ affected:Affected,
                             dependent:Dependent
                           }) :-
-    predicate_property(Pred, tabled),
     predicate_property(Pred, incremental),
     idg_pred_count(Pred, affected, Affected),
     idg_pred_count(Pred, dependent, Dependent).

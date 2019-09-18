@@ -253,15 +253,25 @@ define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
 		query,
 		function(data) {
 		  elem.html(data.html);
-		  elem.form('button_row', {
-		    "Show IDG": function() {
-		      ws.webstat('show_idg', { predicate: pred });
-		    },
-		    "Show tables": function() {
-		      ws.webstat('show_tables', { predicate: pred });
-		    }
-		  });
+		  elem.find(".btn").attr("data-dismiss", "modal")
+				   .addClass("btn-primary");
 		});
+
+	  elem.on("click", "button.btn", function(ev) {
+	    var btn = $(ev.target).closest("button");
+	    var act = btn.data('action');
+
+	    if ( act == "show_tables" )
+	      ws.webstat('show_tables', { predicate: pred });
+	    else if ( act == "show_idg" )
+	      ws.webstat('show_idg', { predicate: pred });
+	    else if ( act == "listing" )
+	      ws.webstat('listing', { predicate: pred });
+	    else if ( act == "edit" )
+	      $.get(config.http.locations.edit_predicate,
+		    query,
+		    function() {});
+	  });
 	}
       });
     },
