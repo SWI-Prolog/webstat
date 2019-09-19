@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2019, VU University Amsterdam
-			 CWI Amsterdam
+    Copyright (C): 2014-2016, VU University Amsterdam
+			      CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -35,20 +35,20 @@
 
 /**
  * @fileOverview
- * Show table with individual tables
+ * Show individual tables
  *
  * @version 0.2.0
  * @author Jan Wielemaker, J.Wielemaker@vu.nl
  * @requires jquery
  */
 
-define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
-       function($, config, utils, modal) {
+define([ "jquery", "utils", "config", "tabulator" ],
+       function($, utils, config) {
 
 (function($) {
-  var pluginName = 'tables';
+  var pluginName = 'table';
 
-  /** @lends $.fn.tables */
+  /** @lends $.fn.table */
   var methods = {
     _init: function(options) {
       return this.each(function() {
@@ -57,112 +57,27 @@ define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
 
 	utils.busy(elem, true);
 
-	$.get(config.http.locations.predicate_tables,
-	      { predicate: options.predicate
+	$.get(config.http.locations.webstat_table,
+	      { variant: options.variant
 	      },
 	      function(data) {
 		utils.busy(elem, false);
 		elem.tabulator({
-		  data:data,
+		  data:data.answers,
 		  layout:"fitDataFill",
-		  initialSort:[{column:"answers",dir:"desc"}],
-		  columns:columns(),
-		  rowClick:function(e, row){
-		    elem[pluginName]('clicked', row);
-		  }
+		  columns:data.columns
 		});
 	      });
 
 	elem.data(pluginName, data);	/* store with element */
       });
-    },
-
-    clicked: function(row) {
-      var variant = row.getData().variant;
-      var ws      = $(this).closest(".webstat");
-
-      ws.webstat('show_table', { variant: variant });
     }
   }; // methods
-
-  function columns() {
-    var columns = [
-     { title:"Variant",
-       field:"variant"
-     },
-     { title:"Answers",
-       field:"answers",
-       headerTooltip:"# answers in table"
-     },
-     { title:"Compl. calls",
-       field:"complete_call",
-       headerTooltip:"# calls to a complete table"
-     },
-     { title:"Dupl. ratio",
-       field:"duplicate_ratio",
-       headerTooltip:"Generated duplicate answers",
-       formatter:"money",
-       formatterParams:{precision:2}
-     },
-     { title:"Variables",
-       field:"variables",
-       headerTooltip:"# variables in variant"
-     },
-     { title:"Invalidated",
-       field:"invalidated",
-       headerTooltip:"Times invalidated"
-     },
-     { title:"Reeval",
-       field:"reevaluated",
-       headerTooltip:"Times Reevaluated"
-     },
-     { title:"Memory",
-       field:"space",
-       headerTooltip:"Memory used for table"
-     },
-     { title:"Comp. mem.",
-       field:"compiled_space",
-       headerTooltip:"Memory used for compiled table"
-     },
-     { title:"Space ratio",
-       field:"space_ratio",
-       headerTooltip:"Values / trie nodes",
-       formatter:"money",
-       formatterParams:{precision:2}
-     }
-    ];
-
-    for(i=0; i<columns.length; i++) {
-      var col = columns[i];
-
-      if ( col.field == "variant" )
-	continue;
-
-      if ( col.sorter == "boolean" ) {
-	col.formatter = "tickCross";
-	col.formatterParams = {crossElement:false};
-	col.align = "center";
-      }
-
-      if ( !col.sorter ) {
-	headerSortStartingDir = "desc";
-	col.sorter = "number";
-	col.align = "right";
-      }
-
-      if ( !col.formatter ) {
-	col.formatter = "money";
-	col.formatterParams = {thousand:",", precision:false};
-      }
-    }
-
-    return columns;
-  }
 
   /**
    * <Class description>
    *
-   * @class tables
+   * @class table
    * @tutorial jquery-doc
    * @memberOf $.fn
    * @param {String|Object} [method] Either a method name or the jQuery
@@ -170,7 +85,7 @@ define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
    * @param [...] Zero or more arguments passed to the jQuery `method`
    */
 
-  $.fn.tables = function(method) {
+  $.fn.table = function(method) {
     if ( methods[method] ) {
       return methods[method]
 	.apply(this, Array.prototype.slice.call(arguments, 1));

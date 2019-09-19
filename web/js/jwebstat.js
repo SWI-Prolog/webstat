@@ -54,6 +54,7 @@ define([ "jquery",
 	 "tables",
 	 "IDG",
 	 "listing",
+	 "table",
 	 "perfchart"
        ],
        function($, modal, config) {
@@ -172,6 +173,16 @@ define([ "jquery",
         label: "Clauses for " + options.predicate,
 	page: true
       }).listing(options);
+    },
+
+    /**
+     * Show an individual table
+     */
+    show_table: function(options) {
+      this.webstat('tab', {
+        label: "Table for " + options.variant,
+	page: true
+      }).table(options);
     }
   }; // methods
 
