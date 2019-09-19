@@ -55,7 +55,7 @@ tables(Request) :-
                     [ thread(Thread, [default(main)]),
                       predicate(PredS, [optional(true)]),
                       goal(GoalS, [optional(true)]),
-                      max(Max, [default(1000)])
+                      max(Max, [default(100 000)])
                     ]),
     to_goal(PredS, GoalS, Goal),
     in_thread(Thread, table_data(Goal, Data, [max(Max)])),

@@ -141,7 +141,10 @@ define([ "jquery",
      * Show tables for a predicate.
      */
     show_tables: function(options) {
-      this.webstat('tab', "Tables for "+options.predicate).tables(options);
+      this.webstat('tab', {
+        label: "Tables for "+options.predicate,
+	page: true
+      }).tables(options);
     },
 
     /**
@@ -165,7 +168,10 @@ define([ "jquery",
      * Show listing of (notably dynamic) facts
      */
     listing: function(options) {
-      this.webstat('tab', "Listing for " + options.predicate).listing(options);
+      this.webstat('tab', {
+        label: "Clauses for " + options.predicate,
+	page: true
+      }).listing(options);
     }
   }; // methods
 
