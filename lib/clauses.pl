@@ -65,12 +65,23 @@ fact_table(Thread, Pred, Table) :-
 fact_table(_Thread, Pred, Table) :-
     fact_table(Pred, Table).
 
-fact_table(Pred, json{columns:Columns, data:Data}) :-
+fact_table(Pred, json{columns:
+                      [ json{title:"Clause No",
+                             field:index,
+                             align:"right"
+                            }
+                      | Columns
+                      ],
+                      data:Data}) :-
     Pred = _M:Head,
     Head =.. [_Name|Args],
     arg_names(Args, 1, ColPairs, Columns, Convert),
-    dict_create(Dict, row, ColPairs),
-    findall(Dict, (Pred,Convert), Data).
+    dict_create(Dict0, row, ColPairs),
+    findall(Dict, clause_row(Dict0, Pred, Convert, Dict), Data).
+
+clause_row(Dict0, Goal, Convert, Dict) :-
+    call_nth((Goal,Convert), Nth),
+    Dict = Dict0.put(index,Nth).
 
 arg_names([], _, [], [], true).
 arg_names([H|T], I, [Name-HS|DT], [json{title:Title, field:Name}|CT], Cond) :-
