@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2014-2016, VU University Amsterdam
+    Copyright (C): 2014-2019, VU University Amsterdam
 			      CWI Amsterdam
     All rights reserved.
 
@@ -42,32 +42,31 @@
  * @requires jquery
  */
 
-define([ "jquery", "utils", "config", "tabulator", "laconic" ],
-       function($, utils, config) {
+define([ "jquery", "tabulator-tables", "laconic" ],
+       function($, Tabulator) {
 
 (function($) {
-  var pluginName = 'listing';
+  var pluginName = 'tabulator';
 
-  /** @lends $.fn.listing */
+  /** @lends $.fn.tabulator */
   var methods = {
     _init: function(options) {
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
 
-	utils.busy(elem, true);
+	elem.data(pluginName, data);	/* store with element */
 
-	$.get(config.http.locations.fact_table,
-	      { pi: options.predicate
-	      },
-	      function(data) {
-		utils.busy(elem, false);
-		elem.tabulator({
-		  data:data.data,
-		  layout:"fitDataFill",
-		  columns:data.columns
-		});
-	      });
+	elem.addClass("reactive-size");
+	elem.on('reactive-resize', function() {
+	  console.log(elem.closest(".tab-pane").height()+"px");
+	  elem.css("height", elem.closest(".tab-pane").height()+"px");
+	  if ( data.table )
+	    data.table.redraw();
+	});
+
+	elem.css("height", elem.closest(".tab-pane").height()+"px");
+	data.table = new Tabulator(elem[0], options).redraw();
 
 	elem.data(pluginName, data);	/* store with element */
       });
@@ -77,7 +76,7 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
   /**
    * <Class description>
    *
-   * @class listing
+   * @class tabulator
    * @tutorial jquery-doc
    * @memberOf $.fn
    * @param {String|Object} [method] Either a method name or the jQuery
@@ -85,7 +84,7 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
    * @param [...] Zero or more arguments passed to the jQuery `method`
    */
 
-  $.fn.listing = function(method) {
+  $.fn.tabulator = function(method) {
     if ( methods[method] ) {
       return methods[method]
 	.apply(this, Array.prototype.slice.call(arguments, 1));

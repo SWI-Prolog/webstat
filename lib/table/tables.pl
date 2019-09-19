@@ -48,7 +48,7 @@
 */
 
 :- http_handler(webstat_api('table/tables'),
-                tables, []).
+                tables, [id(predicate_tables)]).
 
 tables(Request) :-
     http_parameters(Request,

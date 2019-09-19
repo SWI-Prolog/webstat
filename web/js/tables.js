@@ -42,8 +42,8 @@
  * @requires jquery
  */
 
-define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
-       function($, utils, Tabulator, modal) {
+define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
+       function($, config, utils, modal) {
 
 (function($) {
   var pluginName = 'tables';
@@ -57,12 +57,12 @@ define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
 
 	utils.busy(elem, true);
 
-	$.get("/swi/webstat/api/table/tables",
+	$.get(config.http.locations.predicate_tables,
 	      { predicate: options.predicate
 	      },
 	      function(data) {
 		utils.busy(elem, false);
-		var table = new Tabulator(elem[0], {
+		elem.tabulator({
 		  data:data,
 		  layout:"fitDataFill",
 		  initialSort:[{column:"answers",dir:"desc"}],

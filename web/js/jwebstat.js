@@ -102,7 +102,7 @@ define([ "jquery",
      * @return the div element that is the content of the tab
      */
     tab: function(options) {
-      var dom = $.el.div();
+      var dom = $($.el.div());
       var opts;
 
       if ( typeof(options) == "object" )
@@ -116,29 +116,54 @@ define([ "jquery",
       if ( opts.close  == undefined ) opts.close  = true;
 
       $("#content").tabbed('addTab', dom, opts);
-      return $(dom);
+      if ( opts.page ) {
+	dom.closest(".tab-content").addClass("tab-page");
+	dom.closest(".tab-pane").addClass("tab-page");
+      }
+      return dom;
     },
 
 		 /*******************************
 		 *    CREATE UI COMPONENTS	*
 		 *******************************/
 
+    /**
+     * Show tabled predicates
+     */
     show_tabled_predicates: function(options) {
-      this.webstat('tab', "Tabled predicates").tabled_preds(options);
+      this.webstat('tab', {
+        label: "Tabled predicates",
+	page: true
+      }).tabled_preds(options);
     },
+
+    /**
+     * Show tables for a predicate.
+     */
     show_tables: function(options) {
       this.webstat('tab', "Tables for "+options.predicate).tables(options);
     },
 
+    /**
+     * Show IDG from a predicate or all.
+     */
     show_idg: function(options) {
       var label = (options.predicate ? "IDG for " + options.predicate
 				     : "IDG");
 
       this.webstat('tab', label).IDG(options);
     },
+
+    /**
+     * Show a sampled resource usage charts
+     */
     show_perfchart: function(options) {
       this.webstat('tab', "Resource usage").perfchart(options);
     },
+
+    /**
+     * Show listing of (notably dynamic) facts
+     */
     listing: function(options) {
       this.webstat('tab', "Listing for " + options.predicate).listing(options);
     }

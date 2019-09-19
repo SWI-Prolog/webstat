@@ -42,8 +42,8 @@
  * @requires jquery
  */
 
-define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
-       function($, utils, Tabulator, modal) {
+define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
+       function($, config, utils, modal) {
 
 (function($) {
   var pluginName = 'tabled_preds';
@@ -57,11 +57,11 @@ define([ "jquery", "utils", "tabulator", "modal", "laconic", "form" ],
 
 	utils.busy(elem, true);
 
-	$.get("/swi/webstat/api/table/predicates",
-	      function(data) {
+	$.get(config.http.locations.tabled_predicates,
+	      function(sdata) {
 		utils.busy(elem, false);
-		var table = new Tabulator(elem[0], {
-		  data:data,
+		elem.tabulator({
+		  data:sdata,
 		  layout:"fitDataFill",
 		  initialSort:[{column:"tables",dir:"desc"}],
 		  columns:columns(),
