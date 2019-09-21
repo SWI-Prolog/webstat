@@ -53,7 +53,7 @@ define([ "jquery",
 	 "tabled_preds",
 	 "tables",
 	 "IDG",
-	 "listing",
+	 "server_table",
 	 "table",
 	 "perfchart"
        ],
@@ -169,10 +169,15 @@ define([ "jquery",
      * Show listing of (notably dynamic) facts
      */
     listing: function(options) {
+      var opts = { query:  { pi:options.predicate
+			   },
+		   handler:"fact_table"
+		 };
+
       this.webstat('tab', {
         label: "Clauses for " + options.predicate,
 	page: true
-      }).listing(options);
+      }).server_table(opts);
     },
 
     /**

@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2014-2016, VU University Amsterdam
-			      CWI Amsterdam
+    Copyright (C): 2019, VU University Amsterdam
+			 CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -46,10 +46,21 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
        function($, utils, config) {
 
 (function($) {
-  var pluginName = 'listing';
+  var pluginName = 'server_table';
 
-  /** @lends $.fn.listing */
+  /** @lends $.fn.server_table */
   var methods = {
+    /**
+     * Show a server generated table. The server must respond with a
+     * JSON object providing `data.data` as an array of row-objects and
+     * `data.columns` providing the column description.
+     *
+     * @param {Object} options
+     * @param {Object} [options.query] provides additional query
+     * parameter.
+     * @param {String} options.handler provides the id of the registered
+     * server side handler.
+     */
     _init: function(options) {
       return this.each(function() {
 	var elem = $(this);
@@ -57,9 +68,8 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
 
 	utils.busy(elem, true);
 
-	$.get(config.http.locations.fact_table,
-	      { pi: options.predicate
-	      },
+	$.get(config.http.locations[options.handler],
+	      options.query,
 	      function(data) {
 		utils.busy(elem, false);
 		elem.tabulator({
@@ -77,7 +87,7 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
   /**
    * <Class description>
    *
-   * @class listing
+   * @class server_table
    * @tutorial jquery-doc
    * @memberOf $.fn
    * @param {String|Object} [method] Either a method name or the jQuery
@@ -85,7 +95,7 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
    * @param [...] Zero or more arguments passed to the jQuery `method`
    */
 
-  $.fn.listing = function(method) {
+  $.fn.server_table = function(method) {
     if ( methods[method] ) {
       return methods[method]
 	.apply(this, Array.prototype.slice.call(arguments, 1));
