@@ -1,0 +1,3 @@
+.prof_predicates { width: min-content; }
+.prof_predicates .tabulator-cell:last-child { padding-right: 2ex; }
+.prof_predicates .tabulator-tableHolder { overflow-x: hidden !important; }
