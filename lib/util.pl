@@ -33,7 +33,8 @@
 */
 
 :- module(webstat_util,
-          [ in_thread/2                 % +Thread, :Goal
+          [ in_thread/2,                % +Thread, :Goal
+            to_primitive/2              % +Data, -Primitive
           ]).
 
 :- meta_predicate
@@ -68,3 +69,21 @@ run_in_thread(Goal, Vars, Id, Sender) :-
         )
     ;   thread_send_message(Sender, in_thread(Id, false))
     ).
+
+%!  to_primitive(+Prolog, -Primitive)
+%
+%   Translate aribrary Prolog  data  into  something   we  can  pass  as
+%   primitive JSON data, for example as a table row.
+
+to_primitive(H, H) :-
+    number(H),
+    !.
+to_primitive(H, H) :-
+    atom(H),
+    !.
+to_primitive(H, H) :-
+    string(H),
+    !.
+to_primitive(V, S) :-
+    numbervars(V, 0, _, [singletons(true)]),
+    format(string(S), '~p', [V]).

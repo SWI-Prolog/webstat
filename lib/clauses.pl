@@ -90,19 +90,3 @@ arg_names([H|T], I, [Name-HS|DT], [json{title:Title, field:Name}|CT], Cond) :-
     I2 is I+1,
     arg_names(T, I2, DT, CT, Cond0),
     mkconj(to_primitive(H,HS), Cond0, Cond).
-
-:- public
-    to_primitive/2.
-
-to_primitive(H, H) :-
-    number(H),
-    !.
-to_primitive(H, H) :-
-    atom(H),
-    !.
-to_primitive(H, H) :-
-    string(H),
-    !.
-to_primitive(V, S) :-
-    numbervars(V, 0, _, [singletons(true)]),
-    format(string(S), '~p', [V]).
