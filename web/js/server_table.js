@@ -76,7 +76,7 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
 		  data:data.data,
 		  layout:"fitDataFill",
 		  columns:data.columns
-		}, options.table);
+		}, data.table);
 
 		utils.busy(elem, false);
 		elem.tabulator(opts);
