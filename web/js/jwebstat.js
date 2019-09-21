@@ -55,7 +55,8 @@ define([ "jquery",
 	 "IDG",
 	 "server_table",
 	 "table",
-	 "perfchart"
+	 "perfchart",
+	 "profiler"
        ],
        function($, modal, config) {
 
@@ -64,9 +65,12 @@ define([ "jquery",
 
   var defaults = {
     menu: {
-      "Show":
+      "Tools":
       { "Resource usage": function() {
 	  $("body").webstat('show_perfchart');
+	},
+	"Execution profiler": function() {
+	  $("body").webstat('profiler');
 	},
 	"Tabled predicates": function() {
 	  $("body").webstat('show_tabled_predicates');
@@ -188,6 +192,16 @@ define([ "jquery",
         label: "Table for " + options.variant,
 	page: true
       }).table(options);
+    },
+
+    /**
+     * Show profiler
+     */
+    profiler: function(options) {
+      this.webstat('tab', {
+        label: "Profiler",
+	page: true
+      }).profiler(options);
     }
   }; // methods
 

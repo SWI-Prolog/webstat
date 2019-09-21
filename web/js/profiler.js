@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2019, VU University Amsterdam
-			 CWI Amsterdam
+    Copyright (C): 2014-2016, VU University Amsterdam
+			      CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -42,55 +42,41 @@
  * @requires jquery
  */
 
-define([ "jquery", "utils", "config", "tabulator", "laconic" ],
-       function($, utils, config) {
+define([ "jquery", "laconic", "server_table" ],
+       function() {
 
 (function($) {
-  var pluginName = 'server_table';
+  var pluginName = 'profiler';
 
-  /** @lends $.fn.server_table */
+  /** @lends $.fn.profiler */
   var methods = {
-    /**
-     * Show a server generated table. The server must respond with a
-     * JSON object providing `data.data` as an array of row-objects and
-     * `data.columns` providing the column description.
-     *
-     * @param {Object} options
-     * @param {Object} [options.query] provides additional query
-     * parameter.
-     * @param {String} options.handler provides the id of the registered
-     * server side handler.
-     * @param {Object} [options.table] provides additional options.
-     */
     _init: function(options) {
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
 
-	utils.busy(elem, true);
-
-	$.get(config.http.locations[options.handler],
-	      options.query,
-	      function(data) {
-		var opts = $.extend({
-		  data:data.data,
-		  layout:"fitDataFill",
-		  columns:data.columns
-		}, options.table);
-
-		utils.busy(elem, false);
-		elem.tabulator(opts);
-	      });
+	elem.append($.el.div({class:"prof_predicates"})),
+	elem[pluginName]('show_predicates');
 
 	elem.data(pluginName, data);	/* store with element */
       });
+    },
+
+    show_predicates: function() {
+      var elem = $(this);
+      var opts = { query: {
+			  },
+		   handler:"prof_predicates"
+		 };
+
+      elem.server_table(opts);
     }
   }; // methods
 
   /**
    * <Class description>
    *
-   * @class server_table
+   * @class profiler
    * @tutorial jquery-doc
    * @memberOf $.fn
    * @param {String|Object} [method] Either a method name or the jQuery
@@ -98,7 +84,7 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
    * @param [...] Zero or more arguments passed to the jQuery `method`
    */
 
-  $.fn.server_table = function(method) {
+  $.fn.profiler = function(method) {
     if ( methods[method] ) {
       return methods[method]
 	.apply(this, Array.prototype.slice.call(arguments, 1));
