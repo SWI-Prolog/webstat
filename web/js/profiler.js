@@ -69,7 +69,7 @@ define([ "jquery", "laconic", "server_table" ],
 		   handler:"prof_predicates"
 		 };
 
-      elem.server_table(opts);
+      elem.find(".prof_predicates").server_table(opts);
     }
   }; // methods
 
