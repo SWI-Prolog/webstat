@@ -69,6 +69,14 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
 
 	utils.busy(elem, true);
 
+	function del_props(obj, props) {
+	  for(var i=0; i<props.length; i++) {
+	    var p = props[i];
+	    if ( obj[p] != undefined )
+	      delete obj[p];
+	  }
+	}
+
 	$.get(config.http.locations[options.handler],
 	      options.query,
 	      function(data) {
@@ -77,6 +85,7 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
 		  layout:"fitDataFill",
 		  columns:data.columns
 		}, options, data.table);
+		del_props(opts, ['handler', 'query']);
 
 		utils.busy(elem, false);
 		elem.tabulator(opts);
