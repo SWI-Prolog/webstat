@@ -156,6 +156,7 @@ define([ "jquery",
      * Show IDG from a predicate or all.
      */
     show_idg: function(options) {
+      options = options||{};
       var label = (options.predicate ? "IDG for " + options.predicate
 				     : "IDG");
 
