@@ -34,6 +34,7 @@
 
 :- module(webstat_predicate,
           [ pi_string_pi/2,                     % +String, -PI
+            pi_label_string/2,                  % +PI, -String
             pred_detail_dict/3                  % :Goal, -Dict, +Options
           ]).
 :- use_module(library(http/http_dispatch)).
@@ -224,7 +225,9 @@ pred_bool_option(incremental).
 %   predicate indicator term.
 
 pi_string_pi(String, PI) :-
-    (   sub_atom(String, _, _, _, '\'')
+    (   (   sub_atom(String, _, _, _, '\'')
+        ;   sub_atom(String, _, _, _, '(')
+        )
     ->  catch(term_string(PI, String), error(_,_), fail),
         is_pi(PI)
     ),
@@ -254,3 +257,16 @@ is_pi(M:N//A) :- atom(M), atom(N), integer(A), A >= 0.
 is_pi(N/A) :- atom(N), integer(A), A >= 0.
 is_pi(N/A) :- atom(N), integer(A), A >= 0.
 
+%!  pi_label_string(+PI, -Label)
+%
+%   Generate a label string.  Hides confusing module qualifications.
+
+pi_label_string(user:PI, Label) :-
+    !,
+    term_string(PI, Label).
+pi_label_string(system:PI, Label) :-
+    !,
+    term_string(PI, Label).
+pi_label_string(PI, Label) :-
+    !,
+    term_string(PI, Label).

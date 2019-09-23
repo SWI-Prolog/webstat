@@ -40,6 +40,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(apply)).
+:- use_module(library(option)).
 :- use_module(library(prolog_code)).
 
 :- use_module(webstat(lib/graphviz)).
@@ -151,34 +152,52 @@ prof_graph(Request) :-
     pi_string_pi(FocusS, PI),
     pi_head(PI, Focus),
     in_thread(Thread, profile_data(Data)), % TBD: Cache?
-    call_cleanup(prof_graph(Data, Focus, Graph),
+    Summary = Data.summary,
+    Total is max(0, Summary.ticks-Summary.accounting),
+    call_cleanup(prof_graph(Data, Focus, Graph, [total(Total)]),
                  retractall(assigned(_,_))),
     reply_graph(Graph, []).
 
-prof_graph(Data, Focus, digraph(Graph)) :-
+prof_graph(Data, Focus, digraph(Graph), Options) :-
     include(is_focus(Focus), Data.nodes, Nodes),
-    maplist(prof_graph, Nodes, Graphs),
+    maplist(prof_graph(Options), Nodes, Graphs),
     append(Graphs, Graph).
 
-prof_graph(Data, [Node|Relatives]) :-
-    profile_node(Data.predicate, NodeID, Node, [penwidth(2)]),
-    phrase(relatives(Data, NodeID), Relatives).
+prof_graph(Options, Data, [Node|Relatives]) :-
+    option(total(Total), Options),
+    Perc is 100*(Data.ticks_self+Data.ticks_siblings)/Total,
+    profile_node(Data.predicate, NodeID, Node, [penwidth(2)],
+                 [time(Perc)]),
+    phrase(relatives(Data, NodeID, Options), Relatives).
 
-relatives(Data, To) -->
-    relatives(Data.callers, caller, To),
-    relatives(Data.callees, callee, To).
+relatives(Data, To, Options) -->
+    relatives(Data.callers, caller, To, Options),
+    relatives(Data.callees, callee, To, Options).
 
-relatives([], _, _) --> [].
-relatives([node(Pred,_Cycle,_Ticks,_TicksSiblings,
-                _Calls, _Redos, _Exits)|T], Dir, To) -->
-    { profile_node(Pred, PredID, Node, []),
-      edge(Dir, To, PredID, Edge)
+relatives([], _, _, _) --> [].
+relatives([node('<recursive>',_Cycle,_Ticks,_TicksSiblings,
+                Calls, _Redos, _Exits)|T], Dir, To, Options) -->
+    !,
+    { edge_attrs(Calls, Attrs) },
+    [ edge(To-To, [labeltooltip('Recursive calls')|Attrs]) ],
+    relatives(T, Dir, To, Options).
+relatives([node(Pred,_Cycle,Ticks,TicksSiblings,
+                Calls, _Redos, _Exits)|T], Dir, To, Options) -->
+    { option(total(Total), Options),
+      Perc is 100*(Ticks+TicksSiblings)/Total,
+      profile_node(Pred, PredID, Node, [], [time(Perc)]),
+      edge(Dir, To, PredID, Calls, Edge)
     },
     [ Node, Edge ],
-    relatives(T, Dir, To).
+    relatives(T, Dir, To, Options).
 
-edge(caller, To, Id, edge(Id-To, [])).
-edge(callee, To, Id, edge(To-Id, [])).
+edge(caller, To, Id, Calls, edge(Id-To, Attrs)) :-
+    edge_attrs(Calls, Attrs).
+edge(callee, To, Id, Calls, edge(To-Id, Attrs)) :-
+    edge_attrs(Calls, Attrs).
+
+edge_attrs(Calls, [label(Label)]) :-
+    format(string(Label), '~D', [Calls]).
 
 is_focus(Focus, Node) :-
     get_dict(predicate, Node, Focus).
@@ -187,14 +206,23 @@ profile_node(Head, Id,
              node(Id,
                   [ label(Label),
                     href(URL)
-                  | Extra
+                  | Extra0
                   ]),
-             Options) :-
+             Extra,
+             Attrs) :-
     node_id(Head, Id),
     pi_head(PI, Head),
     term_string(PI, URL),
-    format(string(Label), '~q', [PI]),
-    shape(Head, Extra, Options).
+    pi_label(PI, Label, Attrs),
+    shape(Head, Extra0, Extra).
+
+pi_label(PI, html([Label, br([]),
+                   font('point-size'(10), PercLabel)]), [time(Perc)]) :-
+    !,
+    pi_label_string(PI, Label),
+    format(string(PercLabel), '~1f%', Perc).
+pi_label(PI, Label, _) :-
+    pi_label_string(PI, Label).
 
 shape(Head, [shape(cylinder), tooltip('Dynamic predicate')|T], T) :-
     predicate_property(Head, dynamic),
