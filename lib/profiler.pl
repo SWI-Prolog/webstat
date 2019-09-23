@@ -138,6 +138,11 @@ pred_row(Total, Node, json{predicate:PIs,
     ),
     Fail is Call+Redo-Exit.
 
+%!  prof_graph(+Request)
+%
+%   HTTP handler to emit a call graph   with profile data around a given
+%   _focus_ node.
+
 prof_graph(Request) :-
     http_parameters(Request,
                     [ thread(Thread, [default(main)]),
@@ -184,11 +189,21 @@ profile_node(Head, Id,
                     href(URL)
                   | Extra
                   ]),
-             Extra) :-
+             Options) :-
     node_id(Head, Id),
     pi_head(PI, Head),
     term_string(PI, URL),
-    format(string(Label), '~q', [PI]).
+    format(string(Label), '~q', [PI]),
+    shape(Head, Extra, Options).
+
+shape(Head, [shape(cylinder), tooltip('Dynamic predicate')|T], T) :-
+    predicate_property(Head, dynamic),
+    !.
+shape(Head, [style(filled), color(green), tooltip('Tabled predicate')|T], T) :-
+    predicate_property(Head, tabled),
+    !.
+shape(_, T, T).
+
 
 :- thread_local assigned/2.
 

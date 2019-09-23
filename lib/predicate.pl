@@ -224,6 +224,12 @@ pred_bool_option(incremental).
 %   predicate indicator term.
 
 pi_string_pi(String, PI) :-
+    (   sub_atom(String, _, _, _, '\'')
+    ->  catch(term_string(PI, String), error(_,_), fail),
+        is_pi(PI)
+    ),
+    !.
+pi_string_pi(String, PI) :-
     (   sub_atom(String, _, _, A, '//'),
         sub_atom(String, _, A, 0, ArityS),
         atom_number(ArityS, Arity)
@@ -242,3 +248,9 @@ pi_string_pi(String, PI) :-
     B1 is B+1,
     A1 is A+1,
     sub_atom(String, B1, _, A1, Name).
+
+is_pi(M:N/A) :- atom(M), atom(N), integer(A), A >= 0.
+is_pi(M:N//A) :- atom(M), atom(N), integer(A), A >= 0.
+is_pi(N/A) :- atom(N), integer(A), A >= 0.
+is_pi(N/A) :- atom(N), integer(A), A >= 0.
+
