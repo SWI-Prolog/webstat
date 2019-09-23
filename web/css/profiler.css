@@ -1,3 +1,6 @@
 .prof_predicates { width: min-content; }
 .prof_predicates .tabulator-cell:last-child { padding-right: 2ex; }
 .prof_predicates .tabulator-tableHolder { overflow-x: hidden !important; }
+
+.prof_content { display: flex;  flex-direction: row; }
+.prof_graph { background: #ddf; flex-grow: 1; overflow: hidden;}

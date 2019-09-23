@@ -52,7 +52,7 @@
 /** <module> Vizualize the IDG
 */
 
-:- http_handler(webstat_api('table/IDG'), idg, []).
+:- http_handler(webstat_api('table/IDG'), idg, [id('IDG')]).
 
 idg(Request) :-
     http_parameters(Request,

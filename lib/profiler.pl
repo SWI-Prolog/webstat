@@ -42,10 +42,14 @@
 :- use_module(library(apply)).
 :- use_module(library(prolog_code)).
 
+:- use_module(webstat(lib/graphviz)).
 :- use_module(webstat(lib/util)).
+:- use_module(webstat(lib/predicate)).
 
 :- http_handler(webstat_api('profiler/predicates'), prof_predicates,
                 [id(prof_predicates)]).
+:- http_handler(webstat_api('profiler/graph'), prof_graph,
+                [id(prof_graph)]).
 
 prof_predicates(Request) :-
     http_parameters(Request,
@@ -134,3 +138,67 @@ pred_row(Total, Node, json{predicate:PIs,
     ),
     Fail is Call+Redo-Exit.
 
+prof_graph(Request) :-
+    http_parameters(Request,
+                    [ thread(Thread, [default(main)]),
+                      focus(FocusS, [])
+                    ]),
+    pi_string_pi(FocusS, PI),
+    pi_head(PI, Focus),
+    in_thread(Thread, profile_data(Data)), % TBD: Cache?
+    call_cleanup(prof_graph(Data, Focus, Graph),
+                 retractall(assigned(_,_))),
+    reply_graph(Graph, []).
+
+prof_graph(Data, Focus, digraph(Graph)) :-
+    include(is_focus(Focus), Data.nodes, Nodes),
+    maplist(prof_graph, Nodes, Graphs),
+    append(Graphs, Graph).
+
+prof_graph(Data, [Node|Relatives]) :-
+    profile_node(Data.predicate, NodeID, Node, [penwidth(2)]),
+    phrase(relatives(Data, NodeID), Relatives).
+
+relatives(Data, To) -->
+    relatives(Data.callers, caller, To),
+    relatives(Data.callees, callee, To).
+
+relatives([], _, _) --> [].
+relatives([node(Pred,_Cycle,_Ticks,_TicksSiblings,
+                _Calls, _Redos, _Exits)|T], Dir, To) -->
+    { profile_node(Pred, PredID, Node, []),
+      edge(Dir, To, PredID, Edge)
+    },
+    [ Node, Edge ],
+    relatives(T, Dir, To).
+
+edge(caller, To, Id, edge(Id-To, [])).
+edge(callee, To, Id, edge(To-Id, [])).
+
+is_focus(Focus, Node) :-
+    get_dict(predicate, Node, Focus).
+
+profile_node(Head, Id,
+             node(Id,
+                  [ label(Label),
+                    href(URL)
+                  | Extra
+                  ]),
+             Extra) :-
+    node_id(Head, Id),
+    pi_head(PI, Head),
+    term_string(PI, URL),
+    format(string(Label), '~q', [PI]).
+
+:- thread_local assigned/2.
+
+node_id(P, Id) :-
+    assigned(P, Id),
+    !.
+node_id(P, Id) :-
+    (   predicate_property(assigned(_,_), number_of_clauses(N))
+    ->  N2 is N + 1,
+        atom_concat(n, N2, Id)
+    ;   Id = n1
+    ),
+    assertz(assigned(P, Id)).

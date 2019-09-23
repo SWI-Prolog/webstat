@@ -42,8 +42,8 @@
  * @requires jquery
  */
 
-define([ "jquery", "laconic", "server_table" ],
-       function() {
+define([ "jquery", "config", "utils", "modal", "laconic", "server_table" ],
+       function($, config, utils, modal) {
 
 (function($) {
   var pluginName = 'profiler';
@@ -55,7 +55,11 @@ define([ "jquery", "laconic", "server_table" ],
 	var elem = $(this);
 	var data = {};			/* private data */
 
-	elem.append($.el.div({class:"prof_predicates"})),
+	elem.append($.el.div({class:"prof_controller"},
+			     "Buttons will appear here"),
+		    $.el.div({class:"prof_content"},
+			     $.el.div({class:"prof_predicates"}),
+			     $.el.div({class:"prof_graph"})));
 	elem[pluginName]('show_predicates');
 
 	elem.data(pluginName, data);	/* store with element */
@@ -66,12 +70,44 @@ define([ "jquery", "laconic", "server_table" ],
       var elem = $(this);
       var opts = { query: {
 			  },
-		   handler:"prof_predicates"
+		   handler:"prof_predicates",
+		   rowClick:function(e, row){
+		     elem[pluginName]('clicked', row);
+		   }
 		 };
 
       elem.find(".prof_predicates").server_table(opts);
+    },
+
+    clicked: function(row) {
+      var elem = $(this);
+      var pred = row.getData().predicate;	/* predicate indicator */
+      console.log(pred);
+
+      $.get(config.http.locations.prof_graph,
+	    { focus: pred },
+	    function(html) {
+	      var div = elem.find(".prof_graph");
+
+	      div.html(html);
+	      utils.evalScripts(div);
+	      finish(div.find("svg"));
+	    });
     }
   }; // methods
+
+  function finish(svg) {
+    var focus = svg.find("ellipse[stroke-width=2]");
+
+    function pred(ev) {
+      return $(ev.target).closest("a").attr("xlink:href");
+    }
+
+    svg.on("click", "text", function(ev) {
+      modal.predicate_details({predicate: pred(ev)});
+      return false;
+    });
+  }
 
   /**
    * <Class description>

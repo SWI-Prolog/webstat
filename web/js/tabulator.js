@@ -59,7 +59,6 @@ define([ "jquery", "tabulator-tables", "laconic" ],
 
 	elem.addClass("reactive-size");
 	elem.on('reactive-resize', function() {
-	  console.log(elem.closest(".tab-pane").height()+"px");
 	  elem.css("height", elem.closest(".tab-pane").height()+"px");
 	  if ( data.table )
 	    data.table.redraw();

@@ -42,8 +42,8 @@
  * @requires jquery
  */
 
-define([ "jquery", "utils", "modal" ],
-       function($, utils, modal) {
+define([ "jquery", "config", "utils", "modal" ],
+       function($, config, utils, modal) {
 
 (function($) {
   var pluginName = 'IDG';
@@ -61,7 +61,7 @@ define([ "jquery", "utils", "modal" ],
 	options = options||{};
 	if ( options.predicate ) query.focus = options.predicate;
 
-	$.get("/swi/webstat/api/table/IDG",
+	$.get(config.http.locations.IDG,
 	      query,
 	      function(html) {
 		utils.busy(elem, false);
