@@ -205,8 +205,6 @@ svg(SVG, _Options) -->
        var w = container.innerWidth();
        var h = container.innerHeight();
 
-       console.log(w,h);
-
        function reactive() {
 	 if ( !data.reactive ) {
 	   data.reactive = true;
@@ -218,12 +216,16 @@ svg(SVG, _Options) -->
        h = Math.max(h, 100);
 
        svg.css("overflow", "visible");
-       svg.width(Math.min(data.w0, w));
-       svg.height(Math.min(data.h0, h));
+       svg.width(w);
+       svg.height(h);
        reactive();
        if ( pan ) {
 	 pan.resize();
-	 pan.fit();
+	 if ( w > data.w0 && h > data.h0 ) {
+	   pan.zoomBy(1);
+	 } else {
+	   pan.fit();
+	 }
 	 pan.center();
        }
      }

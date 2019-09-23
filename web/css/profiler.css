@@ -15,9 +15,7 @@
 }
 .prof_graph {
   position: relative;
-  background: #ddf;
+  background: #eef;
   flex-grow: 1;
   overflow: hidden;
-}
-.prof_graph .render-graphviz {
 }
