@@ -1,6 +1,23 @@
-.prof_predicates { width: min-content; }
-.prof_predicates .tabulator-cell:last-child { padding-right: 2ex; }
-.prof_predicates .tabulator-tableHolder { overflow-x: hidden !important; }
+.prof_predicates {
+  width: min-content;
+}
 
-.prof_content { display: flex;  flex-direction: row; }
-.prof_graph { background: #ddf; flex-grow: 1; overflow: hidden;}
+.prof_predicates .tabulator-tableHolder {
+  padding-right: 2ex;
+  overflow-x: hidden !important;
+  flex-grow: 0;
+}
+
+.prof_content {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+.prof_graph {
+  position: relative;
+  background: #ddf;
+  flex-grow: 1;
+  overflow: hidden;
+}
+.prof_graph .render-graphviz {
+}

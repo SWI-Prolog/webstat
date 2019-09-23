@@ -90,6 +90,8 @@ define([ "jquery", "config", "utils", "modal", "laconic", "server_table" ],
 	      var div = elem.find(".prof_graph");
 
 	      div.html(html);
+	      div.css("overflow", "hidden");
+	      div.css("height", "100%");
 	      utils.evalScripts(div);
 	      finish(div.find("svg"));
 	    });

@@ -201,7 +201,11 @@ svg(SVG, _Options) -->
      var pan;
 
      function updateSize() {
-       var w = svg.closest("div.tab-pane").innerWidth();
+       var container = svg.closest("div.render-graphviz").parent();
+       var w = container.innerWidth();
+       var h = container.innerHeight();
+
+       console.log(w,h);
 
        function reactive() {
 	 if ( !data.reactive ) {
@@ -211,26 +215,26 @@ svg(SVG, _Options) -->
        }
 
        w = Math.max(w, 100);
-       if ( w < data.w0 ) {
-         svg.css("overflow", "visible");
-	 svg.width(w);
-	 svg.height(w = Math.max(w*data.h0/data.w0, w/4));
-	 reactive();
-	 if ( pan ) {
-	   pan.resize();
-	   pan.fit();
-	   pan.center();
-	 }
+       h = Math.max(h, 100);
+
+       svg.css("overflow", "visible");
+       svg.width(Math.min(data.w0, w));
+       svg.height(Math.min(data.h0, h));
+       reactive();
+       if ( pan ) {
+	 pan.resize();
+	 pan.fit();
+	 pan.center();
        }
      }
 
      require(["svg-pan-zoom"], function(svgPanZoom) {
-       updateSize()
        pan = svgPanZoom(svg[0], {
 			  // controlIconsEnabled: true
 			  minZoom: 0.1,
 			  maxZoom: 50
 			});
+       updateSize()
     });
    }
  })();
