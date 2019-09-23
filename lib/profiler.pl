@@ -65,7 +65,9 @@ prof_predicates(Request) :-
                      data:Predicates,
                      columns:Columns,
                      table: #{ initialSort: [
-                               #{ column: time_cumulative, dir:desc} ],
+                               #{ column: call, dir:desc},
+                               #{ column: time_cumulative, dir:desc}
+                               ],
                                layout: fitData
                              }
                    }).
