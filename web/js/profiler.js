@@ -59,7 +59,7 @@ define([ "jquery", "config", "utils", "modal", "laconic", "server_table" ],
 			     "Buttons will appear here"),
 		    $.el.div({class:"prof_content"},
 			     $.el.div({class:"prof_predicates"}),
-			     $.el.div({class:"prof_graph"})));
+			     $.el.div({class:"prof_graph graphviz-sizer"})));
 	elem[pluginName]('show_predicates');
 
 	elem.data(pluginName, data);	/* store with element */
@@ -88,11 +88,12 @@ define([ "jquery", "config", "utils", "modal", "laconic", "server_table" ],
 	    { focus: pred },
 	    function(html) {
 	      var div = elem.find(".prof_graph");
+	      var hld = $($.el.div({class:"graph-holder",
+				    style:"width:100px; height:100px;"}));
 
-	      div.html(html);
-	      div.css("overflow", "hidden");
-	      div.css("height", "100%");
-	      utils.evalScripts(div);
+	      div.empty().append(hld);
+	      hld.html(html);
+	      utils.evalScripts(hld);
 	      finish(div.find("svg"));
 	    });
     }

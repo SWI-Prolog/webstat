@@ -57,6 +57,7 @@ define([ "jquery", "config", "utils", "modal" ],
 	var query = {};
 
 	utils.busy(elem, true);
+	elem.addClass("graphviz-sizer");
 
 	options = options||{};
 	if ( options.predicate ) query.focus = options.predicate;
@@ -64,12 +65,13 @@ define([ "jquery", "config", "utils", "modal" ],
 	$.get(config.http.locations.IDG,
 	      query,
 	      function(html) {
+		var hld = $($.el.div({class:"graph-holder"}));
 		utils.busy(elem, false);
-		elem.css("overflow", "hidden");
-		elem.css("height", "100%");
-		elem.html(html);
-		utils.evalScripts(elem);
-		finish(elem.find("svg"));
+
+		elem.empty().append(hld);
+		hld.html(html);
+		utils.evalScripts(hld);
+		finish(hld.find("svg"));
 	      });
 
 	elem.data(pluginName, data);	/* store with element */

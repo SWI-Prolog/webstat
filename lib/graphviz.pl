@@ -201,7 +201,7 @@ svg(SVG, _Options) -->
      var pan;
 
      function updateSize() {
-       var container = svg.closest("div.render-graphviz").parent();
+       var container = svg.closest("div.graphviz-sizer");
        var w = container.innerWidth();
        var h = container.innerHeight();
 
