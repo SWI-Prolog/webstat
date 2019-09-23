@@ -174,14 +174,43 @@ relatives(Data, To, Options) -->
     relatives(Data.callers, caller, To, Options),
     relatives(Data.callees, callee, To, Options).
 
-relatives([], _, _, _) --> [].
 relatives([node('<recursive>',_Cycle,_Ticks,_TicksSiblings,
                 Calls, _Redos, _Exits)|T], Dir, To, Options) -->
     !,
     { edge_attrs(Calls, Attrs) },
     [ edge(To-To, [labeltooltip('Recursive calls')|Attrs]) ],
-    relatives(T, Dir, To, Options).
-relatives([node(Pred,_Cycle,Ticks,TicksSiblings,
+    relatives2(T, Dir, To, Options).
+relatives(Nodes, Dir, To, Options) -->
+    relatives2(Nodes, Dir, To, Options).
+
+relatives2(Nodes, Dir, To, Options) -->
+    { order_nodes(Nodes, Ordered),
+      (   length(Ordered, Len),
+          Len > 6
+      ->  length(List, 5),                      % skip at least 2
+          append(List, Skipped, Ordered)
+      ;   List = Ordered
+      )
+    },
+    relative_nodes(List, Dir, To, Options),
+    (   { var(Skipped) }
+    ->  []
+    ;   skipped_edge(Skipped, Dir, To)
+    ).
+
+skipped_edge(Skipped, Dir, To) -->
+    { length(Skipped, Len),
+      format(string(Label), 'Skipped ~D', [Len]),
+      format(atom(Id), 'skip-~w-~w', [Dir, To]),
+      edge(Dir, To, Id, Edge)
+    },
+    [ node(Id, [label(Label), penwidth(0)]),
+      edge(Edge, [arrowhead(none), style(dotted)])
+    ].
+
+
+relative_nodes([], _, _, _) --> [].
+relative_nodes([node(Pred,_Cycle,Ticks,TicksSiblings,
                 Calls, _Redos, _Exits)|T], Dir, To, Options) -->
     { option(total(Total), Options),
       Perc is 100*(Ticks+TicksSiblings)/Total,
@@ -189,12 +218,14 @@ relatives([node(Pred,_Cycle,Ticks,TicksSiblings,
       edge(Dir, To, PredID, Calls, Edge)
     },
     [ Node, Edge ],
-    relatives(T, Dir, To, Options).
+    relative_nodes(T, Dir, To, Options).
 
-edge(caller, To, Id, Calls, edge(Id-To, Attrs)) :-
+edge(Dir, To, Id, Calls, edge(Edge, Attrs)) :-
+    edge(Dir, To, Id, Edge),
     edge_attrs(Calls, Attrs).
-edge(callee, To, Id, Calls, edge(To-Id, Attrs)) :-
-    edge_attrs(Calls, Attrs).
+
+edge(caller, To, Id, Id-To).
+edge(callee, To, Id, To-Id).
 
 edge_attrs(Calls, [label(Label)]) :-
     format(string(Label), '~D', [Calls]).
@@ -232,6 +263,14 @@ shape(Head, [style(filled), color(green), tooltip('Tabled predicate')|T], T) :-
     !.
 shape(_, T, T).
 
+order_nodes(List, Ordered) :-
+    map_list_to_pairs(key_order, List, Keyed),
+    sort(1, >=, Keyed, KeyOrdered),
+    pairs_values(KeyOrdered, Ordered).
+
+key_order(node(_Pred, _Cycle,Ticks,TicksSiblings,
+               _Calls, _Redos, _Exits), Key) :-
+    Key is Ticks+TicksSiblings.
 
 :- thread_local assigned/2.
 
