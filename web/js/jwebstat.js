@@ -120,6 +120,14 @@ define([ "jquery",
       if ( opts.active == undefined ) opts.active = true;
       if ( opts.close  == undefined ) opts.close  = true;
 
+      if ( opts.reuse ) {
+	var ontab = $("#content").find(opts.reuse);
+	if ( ontab.length > 0 ) {
+	  ontab.tabbed('anchor').tab('show');
+	  return ontab;
+	}
+      }
+
       $("#content").tabbed('addTab', dom, opts);
       if ( opts.page ) {
 	dom.closest(".tab-content").addClass("tab-page");
@@ -201,7 +209,8 @@ define([ "jquery",
     profiler: function(options) {
       this.webstat('tab', {
         label: "Profiler",
-	page: true
+	page: true,
+	reuse: ".profiler"
       }).profiler(options);
     }
   }; // methods

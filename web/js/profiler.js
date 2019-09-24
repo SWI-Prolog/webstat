@@ -63,15 +63,20 @@ define([ "jquery", "config", "utils", "modal", "form",
 	var elem = $(this);
 	var data = {};			/* private data */
 
-	elem.addClass("profiler");
-	elem.append($.el.div({class:"form-inline prof_controller"}),
-		    $.el.div({class:"prof_content"},
-			     $.el.div({class:"prof_predicates"}),
-			     $.el.div({class:"prof_graph graphviz-sizer"})));
-	elem[pluginName]('controller');
-	elem[pluginName]('show_predicates');
-	if ( options.predicate )
-	  elem[pluginName]('graph', options.predicate);
+	if ( elem.hasClass("profiler") ) {
+	  if ( options.predicate )
+	    elem[pluginName]('graph', options.predicate);
+	} else {
+	  elem.addClass("profiler");
+	  elem.append($.el.div({class:"form-inline prof_controller"}),
+		      $.el.div({class:"prof_content"},
+			       $.el.div({class:"prof_predicates"}),
+			       $.el.div({class:"prof_graph graphviz-sizer"})));
+	  elem[pluginName]('controller');
+	  elem[pluginName]('show_predicates');
+	  if ( options.predicate )
+	    elem[pluginName]('graph', options.predicate);
+	}
 
 	elem.data(pluginName, data);	/* store with element */
       });
