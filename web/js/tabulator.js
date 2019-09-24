@@ -101,4 +101,23 @@ define([ "jquery", "tabulator-tables", "laconic" ],
     }
   };
 }(jQuery));
+
+return {
+  add_filter: function(dom, onchange) {
+    var input;
+
+    dom.append($.el.div({class:"input-group"},
+			$.el.span({class:"input-group-addon"},
+				  $.el.i({class:"glyphicon glyphicon-filter"})),
+			input =
+			$.el.input({type:"text", class:"form-control",
+			            name:"filter", placeholder:"Filter"})));
+
+    $(input).on('input', function() {
+      var txt = $(input).val();
+
+      onchange.call(dom, txt);
+    });
+  }
+};
 });

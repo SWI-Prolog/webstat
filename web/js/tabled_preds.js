@@ -44,7 +44,7 @@
 
 define([ "jquery", "config", "utils", "modal", "form",
 	 "tabulator", "laconic", "form" ],
-       function($, config, utils, modal, form) {
+       function($, config, utils, modal, form, tabulator) {
 
 (function($) {
   var pluginName = 'tabled_preds';
@@ -78,18 +78,11 @@ define([ "jquery", "config", "utils", "modal", "form",
       var input, br;
 
       /* Filter element */
-      elem.find(".tpred_controller")
-          .append($.el.div({class:"input-group"},
-			   $.el.span({class:"input-group-addon"},
-				     $.el.i({class:"glyphicon glyphicon-filter"})),
-			   input =
-			   $.el.input({type:"text", class:"form-control",
-				       name:"filter", placeholder:"Filter"})));
-      $(input).on('input', function() {
-	var txt = $(input).val();
-	elem.find(".tpred_content")
-	    .tabulator('setFilter', "variant", "like", txt);
-      });
+      tabulator.add_filter(elem.find(".tpred_controller"),
+			   function(val) {
+			     elem.find(".tpred_content")
+			         .tabulator('setFilter', "variant", "like", val);
+			   });
 
       /* buttons */
       elem.find(".tpred_controller")
