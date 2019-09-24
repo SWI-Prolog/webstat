@@ -56,17 +56,25 @@ define([ "jquery", "config", "utils", "modal", "form",
 	var elem = $(this);
 	var data = {};			/* private data */
 
+	elem.data(pluginName, data);	/* store with element */
+	elem.addClass("tabled-predicates listen-close-event");
 	elem.append($.el.div({class:"form-inline tpred_controller"}),
 		    $.el.div({class:"tpred_content"}));
 	elem[pluginName]('controller');
 	elem[pluginName]('load');
 
-	elem.data(pluginName, data);	/* store with element */
+	elem.on('tab-close', function() {
+	  if ( data.timer ) {
+	    clearInterval(data.timer);
+	    delete(data.timer);
+	  }
+	});
       });
     },
 
     controller: function() {
       var elem = $(this);
+      var data = elem.data(pluginName);
       var input, br;
 
       /* Filter element */
@@ -96,18 +104,40 @@ define([ "jquery", "config", "utils", "modal", "form",
 
 	if ( action == 'refresh' ) {
 	  elem[pluginName]('load');
+	} else if ( action == 'repeat' ) {
+	  var btn = br.find(".glyphicon-repeat");
+
+	  if ( data.timer ) {
+	    clearInterval(data.timer);
+	    delete data.timer;
+	    btn.removeClass("repeat-running");
+	    modal.feedback({html: "Stopped refresh"});
+	  } else {
+	    data.timer = setInterval(function() {
+	      elem[pluginName]('load');
+	    }, 10000);
+	    btn.addClass("repeat-running");
+	    modal.feedback({html: "Refreshing every 10 seconds"});
+	  }
 	}
       });
     },
 
     load: function() {
       var elem = $(this);
+      var data = elem.data(pluginName);
+      var start = Date.now();
+
       utils.busy(elem, true);
 
       $.get(config.http.locations.tabled_predicates,
 	    function(sdata) {
+	      var ifilter;
+
 	      utils.busy(elem, false);
-	      elem.find(".tpred_content").empty().tabulator({
+	      data.poll_time = Date.now()-start;
+
+	      var opts = {
 		data:sdata,
 		layout:"fitDataFill",
 		initialSort:[{column:"tables",dir:"desc"}],
@@ -115,7 +145,13 @@ define([ "jquery", "config", "utils", "modal", "form",
 		rowClick:function(e, row){
 		  elem[pluginName]('clicked', row);
 		}
-	      });
+	      };
+
+	      ifilter = elem.find(".tpred_controller input").val();
+	      if ( ifilter != "" )
+		opts.initialFilter = [ {field:"variant", type:"like", value: ifilter} ];
+
+	      elem.find(".tpred_content").empty().tabulator(opts);
 	    });
     },
 
