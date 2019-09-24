@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+  <title>Execution profiling</title>
+  </head>
+<body>
+<style>
+p.note { margin-left: 5%; margin-top: 1em; position: relative }
+p.note span.glyphicon-hand-right {
+float: left; font-size: 120%; color: orange; padding-right: 0.2em;
+}
+
+a.nb-no-cell.program { margin: 0px; }
+</style>
+<p>
+The execution profiler gathers statistical information about the
+execution of your program. These statistics can be used to analyse
+performance.
+
+There are two ways to record profiling data:
+
+  <ol>
+    <li>Run <code>?- profile(Goal).</code> or
+    <li>Use the <button class="btn btn-default btn-xs" type="button">
+          <span class="glyphicon glyphicon-film"></span>
+        </button> and <button class="btn btn-default btn-xs" type="button">
+          <span class="glyphicon glyphicon-pause"></span>
+        </button> buttons while your program is running.
+  </ol>
+
+<p>
+After recording, the results can be examined using the <button
+class="btn btn-default btn-xs" type="button"><span class="glyphicon
+glyphicon-eye-open"></span></button> button.
+
+  <ul>
+    <li><button class="btn btn-default btn-xs" type="button">
+          <span class="glyphicon glyphicon-erase"></span>
+        </button>
+Erase all recorded profile data.
+
+    <li><button class="btn btn-default btn-xs" type="button">
+          <span class="glyphicon glyphicon-film"></span>
+        </button>
+Start recording a (CPU) profile.  While recording, the button
+is red.
+    <li><button class="btn btn-default btn-xs" type="button">
+          <span class="glyphicon glyphicon-pause"></span>
+        </button>
+Stop recording profile information.
+    <li><button class="btn btn-default btn-xs" type="button">
+          <span class="glyphicon glyphicon-eye-open"></span>
+        </button>
+Show the collected data as a list of used predicates sorted
+by the sampled CPU time used.
+  </ul>
+</body>
+</html>

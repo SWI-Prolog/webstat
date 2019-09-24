@@ -176,6 +176,7 @@ alt(rjs, 'node_modules/requirejs/require.js', -).
 		 *******************************/
 
 :- use_module(webstat('lib/config')).
+:- use_module(webstat('lib/help')).
 :- use_module(webstat('lib/table/predicates')).
 :- use_module(webstat('lib/table/tables')).
 :- use_module(webstat('lib/table/table')).

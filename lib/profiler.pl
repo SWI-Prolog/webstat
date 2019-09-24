@@ -47,10 +47,34 @@
 :- use_module(webstat(lib/util)).
 :- use_module(webstat(lib/predicate)).
 
+:- http_handler(webstat_api(profiler/control/Action), prof_control(Action),
+                [id(prof_control)]).
 :- http_handler(webstat_api('profiler/predicates'), prof_predicates,
                 [id(prof_predicates)]).
 :- http_handler(webstat_api('profiler/graph'), prof_graph,
                 [id(prof_graph)]).
+
+%!  prof_control(+Action, +Request)
+%
+%   Control the profiler.
+
+prof_control(Action, Request) :-
+    http_parameters(Request,
+                    [ thread(Thread, [default(main)])
+                    ]),
+    in_thread(Thread, prof_do_control(Action, Reply)),
+    reply_json(Reply).
+
+prof_do_control(record, json{prev:Old,new:cputime}) :-
+    profiler(Old, cputime).
+prof_do_control(pause,  json{prev:Old,new:false}) :-
+    profiler(Old, false).
+prof_do_control(reset,  json{new:false, clear:true}) :-
+    reset_profiler.
+
+%!  prof_predicates(+Action)
+%
+%   HTTP handler to show the profiled predicates
 
 prof_predicates(Request) :-
     http_parameters(Request,

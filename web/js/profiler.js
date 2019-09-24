@@ -42,8 +42,9 @@
  * @requires jquery
  */
 
-define([ "jquery", "config", "utils", "modal", "laconic", "server_table" ],
-       function($, config, utils, modal) {
+define([ "jquery", "config", "utils", "modal", "form",
+	 "laconic", "server_table" ],
+       function($, config, utils, modal, form) {
 
 (function($) {
   var pluginName = 'profiler';
@@ -55,15 +56,60 @@ define([ "jquery", "config", "utils", "modal", "laconic", "server_table" ],
 	var elem = $(this);
 	var data = {};			/* private data */
 
-	elem.append($.el.div({class:"prof_controller"},
-			     "Buttons will appear here"),
+	elem.append($.el.div({class:"form-inline prof_controller"}),
 		    $.el.div({class:"prof_content"},
 			     $.el.div({class:"prof_predicates"}),
 			     $.el.div({class:"prof_graph graphviz-sizer"})));
+	elem[pluginName]('controller');
 	elem[pluginName]('show_predicates');
 
 	elem.data(pluginName, data);	/* store with element */
       });
+    },
+
+    controller: function() {
+      var elem = $(this);
+      var ctrl = elem.find(".prof_controller");
+      var br;
+
+      ctrl.append(br=$($.el.div({class:"btn-group"})));
+      br.append(form.widgets.glyphIconButton("erase", {
+		  action:'reset', title:"Clear recorded profile data"}),
+		$("<span class='menu-space'>&nbsp</span>"),
+		form.widgets.glyphIconButton("film", {
+		  action:'record', title:"Record profile data"}),
+		form.widgets.glyphIconButton("pause", {
+		  action:'pause', title:"Pause recording profile data"}),
+		$("<span class='menu-space'>&nbsp</span>"),
+		form.widgets.glyphIconButton("eye-open", {
+		  action:'show', title:"Show profile data"}));
+
+      br.on("click", ".btn", function(ev) {
+	var action = $(ev.target).closest(".btn").data('action');
+
+	console.log(action);
+
+	if ( action == 'show' ) {
+	  elem[pluginName]('show_predicates');
+	} else {
+	  $.get(config.http.locations.prof_control + action,
+		function(data) {
+		  if ( typeof(data) == 'object' ) {
+		    if ( data.new == 'cputime' ) {
+		      elem.find(".glyphicon-film").addClass("recording");
+		    } else if ( data.new == false ) {
+		      elem.find(".glyphicon-film").removeClass("recording");
+		      if ( data.clear ) {
+			elem.find(".prof_predicates").empty();
+			elem.find(".prof_graph").empty();
+			elem[pluginName]('help');
+		      }
+		    }
+		  }
+		});
+	}
+      });
+
     },
 
     show_predicates: function() {
@@ -73,10 +119,26 @@ define([ "jquery", "config", "utils", "modal", "laconic", "server_table" ],
 		   handler:"prof_predicates",
 		   rowClick:function(e, row){
 		     elem[pluginName]('clicked', row);
+		   },
+		   onempty: function() {
+		     elem[pluginName]('help');
 		   }
 		 };
 
       elem.find(".prof_predicates").server_table(opts);
+    },
+
+    help: function() {
+      var elem = $(this);
+
+      $.get(config.http.locations.webstat_help + "/profiler.html",
+	    function(html) {
+	      var div;
+	      elem.find(".prof_predicates")
+		  .empty()
+		  .append(div=$($.el.div({class:"prof_help"})));
+	      div.html(html);
+	    });
     },
 
     clicked: function(row) {

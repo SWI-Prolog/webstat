@@ -2,8 +2,14 @@
   width: min-content;
 }
 
+.prof_help {
+  width: 100ex;
+  padding-left: 2ex;
+  padding-top: 2ex;
+}
+
 .prof_predicates .tabulator-tableHolder {
-  padding-right: 2ex;
+  padding-right: 1.5ex;				/* space for scrollbar */
   overflow-x: hidden !important;
   flex-grow: 0;
 }
@@ -18,4 +24,8 @@
   background: #eef;
   flex-grow: 1;
   overflow: hidden;
+}
+
+.glyphicon-film.recording {
+  color: red;
 }

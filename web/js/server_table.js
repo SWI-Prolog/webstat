@@ -80,15 +80,24 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
 	$.get(config.http.locations[options.handler],
 	      options.query,
 	      function(data) {
-		var opts = $.extend({
-		  data:data.data,
-		  layout:"fitDataFill",
-		  columns:data.columns
-		}, options, data.table);
-		del_props(opts, ['handler', 'query']);
 
 		utils.busy(elem, false);
-		elem.tabulator(opts);
+
+		if ( data.data.length == 0 &&
+		     options.onempty ) {
+		  options.onempty.call(elem);
+		} else {
+		  var div = $($.el.div({class: "tabulator-content"}));
+		  var opts = $.extend({
+		    data:data.data,
+		    layout:"fitDataFill",
+		    columns:data.columns
+		  }, options, data.table);
+		  del_props(opts, ['handler', 'query', 'onempty']);
+
+		  elem.empty().append(div);
+		  div.tabulator(opts);
+		}
 	      });
 
 	elem.data(pluginName, data);	/* store with element */
