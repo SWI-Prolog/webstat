@@ -102,6 +102,12 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
 
 	elem.data(pluginName, data);	/* store with element */
       });
+    },
+
+    setFilter: function(field, cmp, val) {
+      var elem = $(this);
+
+      elem.find(".tabulator-content").tabulator('setFilter', field, cmp, val);
     }
   }; // methods
 

@@ -43,8 +43,8 @@
  */
 
 define([ "jquery", "config", "utils", "modal", "form",
-	 "laconic", "server_table" ],
-       function($, config, utils, modal, form) {
+	 "tabulator", "laconic", "server_table" ],
+       function($, config, utils, modal, form, tabulator) {
 
 (function($) {
   var pluginName = 'profiler';
@@ -72,8 +72,14 @@ define([ "jquery", "config", "utils", "modal", "form",
       var ctrl = elem.find(".prof_controller");
       var br;
 
+      tabulator.add_filter(ctrl, function(val) {
+	elem.find(".prof_predicates")
+            .server_table('setFilter', "predicate", "like", val);
+      });
+
       ctrl.append(br=$($.el.div({class:"btn-group"})));
-      br.append(form.widgets.glyphIconButton("erase", {
+      br.append($("<span class='menu-space'>&nbsp</span>"),
+		form.widgets.glyphIconButton("erase", {
 		  action:'reset', title:"Clear recorded profile data"}),
 		$("<span class='menu-space'>&nbsp</span>"),
 		form.widgets.glyphIconButton("film", {
@@ -86,8 +92,6 @@ define([ "jquery", "config", "utils", "modal", "form",
 
       br.on("click", ".btn", function(ev) {
 	var action = $(ev.target).closest(".btn").data('action');
-
-	console.log(action);
 
 	if ( action == 'show' ) {
 	  elem[pluginName]('show_predicates');
