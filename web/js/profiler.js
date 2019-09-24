@@ -51,17 +51,27 @@ define([ "jquery", "config", "utils", "modal", "form",
 
   /** @lends $.fn.profiler */
   var methods = {
+    /**
+     * @param {Object} [options]
+     * @param {String} [options.predicate] Show the call graph around
+     * this predicate
+     */
     _init: function(options) {
+      options = options||{};
+
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
 
+	elem.addClass("profiler");
 	elem.append($.el.div({class:"form-inline prof_controller"}),
 		    $.el.div({class:"prof_content"},
 			     $.el.div({class:"prof_predicates"}),
 			     $.el.div({class:"prof_graph graphviz-sizer"})));
 	elem[pluginName]('controller');
 	elem[pluginName]('show_predicates');
+	if ( options.predicate )
+	  elem[pluginName]('graph', options.predicate);
 
 	elem.data(pluginName, data);	/* store with element */
       });
@@ -148,7 +158,12 @@ define([ "jquery", "config", "utils", "modal", "form",
     clicked: function(row) {
       var elem = $(this);
       var pred = row.getData().predicate;	/* predicate indicator */
-      console.log(pred);
+
+      elem[pluginName]('graph', pred);
+    },
+
+    graph: function(pred) {
+      var elem = $(this);
 
       $.get(config.http.locations.prof_graph,
 	    { focus: pred },

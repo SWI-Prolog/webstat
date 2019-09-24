@@ -271,6 +271,8 @@ define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
 	      $.get(config.http.locations.edit_predicate,
 		    query,
 		    function() {});
+	    else if ( act == "show_prof" )
+	      ws.webstat('profiler', { predicate: pred });
 	  });
 	}
       });
