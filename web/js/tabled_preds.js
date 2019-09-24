@@ -55,12 +55,16 @@ define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
 	var elem = $(this);
 	var data = {};			/* private data */
 
+	elem.append($.el.div({class:"form-inline tpred_controller"}),
+		    $.el.div({class:"tpred_content"}));
+	elem[pluginName]('controller');
+
 	utils.busy(elem, true);
 
 	$.get(config.http.locations.tabled_predicates,
 	      function(sdata) {
 		utils.busy(elem, false);
-		elem.tabulator({
+		elem.find(".tpred_content").tabulator({
 		  data:sdata,
 		  layout:"fitDataFill",
 		  initialSort:[{column:"tables",dir:"desc"}],
@@ -72,6 +76,23 @@ define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
 	      });
 
 	elem.data(pluginName, data);	/* store with element */
+      });
+    },
+
+    controller: function() {
+      var elem = $(this);
+      var input;
+
+      elem.find(".tpred_controller")
+          .append($.el.div({class:"input-group"},
+			   $.el.span({class:"input-group-addon"},
+				     $.el.i({class:"glyphicon glyphicon-filter"})),
+			   input =
+			   $.el.input({type:"text", class:"form-control",
+				       name:"filter", placeholder:"Filter"})));
+      $(input).on('input', function() {
+	var txt = $(input).val();
+	elem.find(".tpred_content").tabulator('setFilter', "variant", "like", txt);
       });
     },
 

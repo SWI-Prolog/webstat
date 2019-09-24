@@ -65,10 +65,17 @@ define([ "jquery", "tabulator-tables", "laconic" ],
 	});
 
 	elem.css("height", elem.closest(".tab-pane").height()+"px");
-	data.table = new Tabulator(elem[0], options).redraw();
+	data.table = new Tabulator(elem[0], options);
+	data.table.redraw();
 
 	elem.data(pluginName, data);	/* store with element */
       });
+    },
+
+    setFilter: function(field, cmp, val) {
+      var data = $(this).data(pluginName);
+
+      data.table.setFilter(field, cmp, val);
     }
   }; // methods
 
