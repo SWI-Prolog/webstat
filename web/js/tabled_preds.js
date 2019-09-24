@@ -42,8 +42,9 @@
  * @requires jquery
  */
 
-define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
-       function($, config, utils, modal) {
+define([ "jquery", "config", "utils", "modal", "form",
+	 "tabulator", "laconic", "form" ],
+       function($, config, utils, modal, form) {
 
 (function($) {
   var pluginName = 'tabled_preds';
@@ -58,22 +59,7 @@ define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
 	elem.append($.el.div({class:"form-inline tpred_controller"}),
 		    $.el.div({class:"tpred_content"}));
 	elem[pluginName]('controller');
-
-	utils.busy(elem, true);
-
-	$.get(config.http.locations.tabled_predicates,
-	      function(sdata) {
-		utils.busy(elem, false);
-		elem.find(".tpred_content").tabulator({
-		  data:sdata,
-		  layout:"fitDataFill",
-		  initialSort:[{column:"tables",dir:"desc"}],
-		  columns:columns(),
-		  rowClick:function(e, row){
-		    elem[pluginName]('clicked', row);
-		  }
-		});
-	      });
+	elem[pluginName]('load');
 
 	elem.data(pluginName, data);	/* store with element */
       });
@@ -81,8 +67,9 @@ define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
 
     controller: function() {
       var elem = $(this);
-      var input;
+      var input, br;
 
+      /* Filter element */
       elem.find(".tpred_controller")
           .append($.el.div({class:"input-group"},
 			   $.el.span({class:"input-group-addon"},
@@ -92,8 +79,44 @@ define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
 				       name:"filter", placeholder:"Filter"})));
       $(input).on('input', function() {
 	var txt = $(input).val();
-	elem.find(".tpred_content").tabulator('setFilter', "variant", "like", txt);
+	elem.find(".tpred_content")
+	    .tabulator('setFilter', "variant", "like", txt);
       });
+
+      /* buttons */
+      elem.find(".tpred_controller")
+          .append(br=$($.el.div({class:"btn-group"})));
+      br.append($("<span class='menu-space'>&nbsp</span>"),
+		form.widgets.glyphIconButton("refresh", {
+	          action:'refresh', title:"Refresh"}),
+		form.widgets.glyphIconButton("repeat", {
+	          action:'repeat', title:"Refresh repeatedly"}));
+      br.on("click", ".btn", function(ev) {
+	var action = $(ev.target).closest(".btn").data('action');
+
+	if ( action == 'refresh' ) {
+	  elem[pluginName]('load');
+	}
+      });
+    },
+
+    load: function() {
+      var elem = $(this);
+      utils.busy(elem, true);
+
+      $.get(config.http.locations.tabled_predicates,
+	    function(sdata) {
+	      utils.busy(elem, false);
+	      elem.find(".tpred_content").empty().tabulator({
+		data:sdata,
+		layout:"fitDataFill",
+		initialSort:[{column:"tables",dir:"desc"}],
+		columns:columns(),
+		rowClick:function(e, row){
+		  elem[pluginName]('clicked', row);
+		}
+	      });
+	    });
     },
 
     clicked: function(row) {
