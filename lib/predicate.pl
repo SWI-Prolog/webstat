@@ -4,6 +4,7 @@
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (c)  2019, VU University Amsterdam
+			 CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -44,6 +45,7 @@
 :- use_module(library(option)).
 :- use_module(library(prolog_code)).
 :- use_module(library(aggregate)).
+:- use_module(library(statistics)).
 
 :- use_module(webstat(lib/util)).
 :- use_module(webstat(lib/stats)).
@@ -52,6 +54,9 @@
                 [id(predicate_details)]).
 :- http_handler(webstat('edit/predicate'), pred_edit,
                 [id(edit_predicate)]).
+
+:- meta_predicate
+    action(+,+,0,?,?).
 
 pred_details(Request) :-
     http_parameters(Request,
@@ -80,10 +85,23 @@ pred_detail_rows(Dict, Options) -->
               ]),
            tr([ th('Number of clauses'),
                 td(class(count), Dict.clause_count),
-                \action(listing, 'List clauses')
+                \action(listing, 'List clauses', can_list(Dict))
               ])
          | \opt_pred_detail_rows(Dict, Options)
          ]).
+
+%!  can_list(+PredicateDict)
+%
+%   Succeed if we can produce a listing for this predicate. Currently we
+%   only list facts as a table.
+
+can_list(Dict) :-
+    \+ Dict.get(rule_count) > 0,
+    Dict.get(clause_count) > 0.
+
+%!  pred_props(+Candidates, +PredicateDict, +Options)//
+%
+%   List boolean attributes of the predicate.
 
 pred_props([], _, _) --> [].
 pred_props([H|T], Dict, Options) -->
@@ -96,7 +114,8 @@ pred_props([H|T], Dict, Options) -->
 opt_pred_detail_rows(Dict, Options) -->
     pred_source(Dict, Options),
     pred_tabled(Dict, Options),
-    pred_idg(Dict, Options).
+    pred_idg(Dict, Options),
+    pred_prof(Dict, Options).
 
 pred_source(Dict, _Options) -->
     { _{file:File, line:Line} :< Dict.get(source) },
@@ -134,6 +153,17 @@ pred_idg(Dict, _Options) -->
     !.
 pred_idg(_, _) --> [].
 
+pred_prof(Dict, _Options) -->
+    { Prof = Dict.get(prof) },
+    html(tr([ th('Profiler'),
+              td(class(piped),
+                 [ \dict_count(Prof, call, '~D calls', true)
+                 ]),
+              \action(show_prof, 'Show graph')
+            ])),
+    !.
+pred_prof(_, _) --> [].
+
 dict_count(Dict, Name, Format, Cond) -->
     { Count = Dict.get(Name),
       (   Cond == true
@@ -145,7 +175,13 @@ dict_count(Dict, Name, Format, Cond) -->
 dict_count(_, _, _, _) --> [].
 
 action(Name, Label) -->
-    html(td(button([class(btn), 'data-action'(Name)], Label))).
+    action(Name, Label, true).
+action(Name, Label, Cond) -->
+    (   { call(Cond) }
+    ->  html(td(button([class(btn), 'data-action'(Name)], Label)))
+    ;   []
+    ).
+
 
 %!  pred_edit(+Request)
 %
@@ -165,7 +201,8 @@ pred_edit(Request) :-
 %!  pred_detail_dict(:Goal, -Dict, +Options) is det.
 
 pred_detail_dict(Pred, Dict, Options) :-
-    (   predicate_property(Pred, thread_local)
+    (   true                                    % also for profile info
+    ;   predicate_property(Pred, thread_local)
     ;   predicate_property(Pred, incremental)
     ;   predicate_property(Pred, tabled),
         \+ predicate_property(Pred, tabled(shared))
@@ -197,16 +234,23 @@ pred_detail(Pred, clause_count, Count) :-
     ->  true
     ;   Count = 0
     ).
+pred_detail(Pred, rule_count, Count) :-
+    predicate_property(Pred, number_of_rules(Count)).
 pred_detail(Pred, tabled, Tables) :-
     predicate_property(Pred, tabled),
     table_statistics_dict(Pred, Tables0),
-    del_dict(variant, Tables0, _, Tables).
+    remove_keys([variant], Tables0, Tables).
 pred_detail(Pred, idg, idg{ affected:Affected,
                             dependent:Dependent
                           }) :-
     predicate_property(Pred, incremental),
     idg_pred_count(Pred, affected, Affected),
     idg_pred_count(Pred, dependent, Dependent).
+:- if(current_predicate(profile_procedure_data/2)).
+pred_detail(Pred, prof, Data) :-
+    profile_procedure_data(Pred, Data0),
+    remove_keys([predicate, callers, callees], Data0, Data).
+:- endif.
 
 idg_pred_count(Pred, Dir, Count) :-
     pi_head(PI, Pred),
@@ -218,6 +262,12 @@ pred_bool_option(dynamic).
 pred_bool_option(thread_local).
 pred_bool_option(incremental).
 
+remove_keys([], Dict, Dict).
+remove_keys([H|T], Dict0, Dict) :-
+    (   del_dict(H, Dict0, _, Dict1)
+    ->  remove_keys(T, Dict1, Dict)
+    ;   remove_keys(T, Dict0, Dict)
+    ).
 
 %!  pi_string_pi(+String, -PI)
 %
