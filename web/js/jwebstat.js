@@ -65,14 +65,16 @@ define([ "jquery",
 
   var defaults = {
     menu: {
-      "Tools":
-      { "Resource usage": function() {
+      "Performance":
+      { "Resource charts": function() {
 	  $("body").webstat('show_perfchart');
 	},
 	"Execution profiler": function() {
 	  $("body").webstat('profiler');
 	},
-	"Tabled predicates": function() {
+      },
+      "Tabling":
+      { "Tabled predicates": function() {
 	  $("body").webstat('show_tabled_predicates');
 	},
 	"Incremental Dependency Graph": function() {
