@@ -98,7 +98,7 @@ prof_predicates(Request) :-
 
 columns([
     json{title: "Predicate",
-         field: predicate
+         field: label
         },
     json{title: "Time",
          field: time_cumulative,
@@ -145,18 +145,19 @@ columns([
 ]).
 
 pred_row(Total, Node, json{predicate:PIs,
+                           label:Label,
                            time_cumulative:CumPercent,
                            time_self:Percent,
                            call:Call,
                            redo:Redo,
                            exit:Exit,
                            fail:Fail}) :-
-    _{ predicate:Pred,
+    _{ predicate:PI,
        ticks_self:Ticks, ticks_siblings:TicksSiblings,
        call:Call, redo:Redo, exit:Exit
      } :< Node,
-    pi_head(PI, Pred),
     to_primitive(PI, PIs),
+    predicate_label(PI, Label),
     (   Total =:= 0
     ->  Percent = 0,
         CumPercent = 0
@@ -175,8 +176,7 @@ prof_graph(Request) :-
                     [ thread(Thread, [default(main)]),
                       focus(FocusS, [])
                     ]),
-    pi_string_pi(FocusS, PI),
-    pi_head(PI, Focus),
+    pi_string_pi(FocusS, Focus),
     in_thread(Thread, profile_data(Data)), % TBD: Cache?
     Summary = Data.summary,
     Total is max(0, Summary.ticks-Summary.accounting),
@@ -259,7 +259,7 @@ edge_attrs(Calls, [label(Label)]) :-
 is_focus(Focus, Node) :-
     get_dict(predicate, Node, Focus).
 
-profile_node(Head, Id,
+profile_node(PI, Id,
              node(Id,
                   [ label(Label),
                     href(URL)
@@ -267,19 +267,22 @@ profile_node(Head, Id,
                   ]),
              Extra,
              Attrs) :-
-    node_id(Head, Id),
-    pi_head(PI, Head),
+    node_id(PI, Id),
     term_string(PI, URL),
     pi_label(PI, Label, Attrs),
-    shape(Head, Extra0, Extra).
+    pi_shape(PI, Extra0, Extra).
 
 pi_label(PI, html([Label, br([]),
                    font('point-size'(10), PercLabel)]), [time(Perc)]) :-
     !,
-    pi_label_string(PI, Label),
+    predicate_label(PI, Label),
     format(string(PercLabel), '~1f%', Perc).
 pi_label(PI, Label, _) :-
-    pi_label_string(PI, Label).
+    predicate_label(PI, Label).
+
+pi_shape(PI, Shape, Tail) :-
+    pi_head(PI, Head),
+    shape(Head, Shape, Tail).
 
 shape(Head, [shape(cylinder), tooltip('Dynamic predicate')|T], T) :-
     predicate_property(Head, dynamic),

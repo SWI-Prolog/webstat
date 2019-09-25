@@ -177,7 +177,7 @@ pi_label(PI, HTML) :-
     ->  HTML = html([Label, br([]) | Attrs])
     ;   HTML = Label
     ),
-    pi_label_string(PI, Label).
+    predicate_label(PI, Label).
 
 label_attr(Head, [i('I:'), Inval]) :-
     table_statistics(Head, invalidated, Inval),
@@ -195,13 +195,13 @@ append_sep([H|T], Sep, List) :-
 
 edge_tooltip(P1, dependent, P1, Count, Tooltip) :-
     !,
-    pi_label_string(P1, L1),
+    predicate_label(P1, L1),
     format(string(Tooltip),
            '~w has ~D self dependencies', [L1, Count]).
 edge_tooltip(P1, dependent, P2, Count, Tooltip) :-
     !,
-    pi_label_string(P1, L1),
-    pi_label_string(P2, L2),
+    predicate_label(P1, L1),
+    predicate_label(P2, L2),
     format(string(Tooltip),
            '~w depends on ~w\nwith ~D variants', [L1, L2, Count]).
 edge_tooltip(P1, affected, P2, Count, Tooltip) :-
