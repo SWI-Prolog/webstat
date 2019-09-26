@@ -33,7 +33,7 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(swish_render_graphviz,
+:- module(webstat_render_graphviz,
 	  [ reply_graph/2,			% +Term, +Options
 	    term_rendering//3,			% +Term, +Vars, +Options
 	    svg//2				% +String, +Options
@@ -106,7 +106,7 @@ reply_graph(Graph, Options) :-
 	print_html(Tokens).
 
 
-:- http_handler(webstat(graphviz), swish_send_graphviz, []).
+:- http_handler(webstat(graphviz), webstat_send_graphviz, []).
 
 :- dynamic
 	dot_data/3.				% +Hash, +Data, +Time
@@ -143,7 +143,7 @@ render_dot(DOTString, Program, Options) -->	% <object> rendering
 			     dot: DOTString
 			   }, Now)),
 	  remove_old_data(Now),
-	  http_link_to_id(swish_send_graphviz,
+	  http_link_to_id(webstat_send_graphviz,
 			  [ hash(Hash),
 			    lang(svg),
 			    target('_top')
@@ -280,11 +280,11 @@ graphviz_program(patchwork).
 graph_type(graph).
 graph_type(digraph).
 
-%%	swish_send_graphviz(+Request)
+%%	webstat_send_graphviz(+Request)
 %
 %	HTTP handler to send a GraphViz graph
 
-swish_send_graphviz(Request) :-
+webstat_send_graphviz(Request) :-
 	http_parameters(Request,
 			[ hash(Hash,
 			       [ description('Hash-key to the graph-data')
