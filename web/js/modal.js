@@ -42,8 +42,8 @@
  * @requires jquery
  */
 
-define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
-       function($, config, preferences) {
+define([ "jquery", "config", "preferences", "utils", "laconic", "bootstrap" ],
+       function($, config, preferences, utils) {
 
 (function($) {
   var pluginName = 'swishModal';
@@ -249,10 +249,13 @@ define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
 	  var elem = $(this);
 	  var query = {pi: pred};
 
+	  elem.css("min-height", "100px");
+	  utils.busy(elem, true);
 	  $.ajax({
 	    url: config.http.locations.predicate_details,
 	    data: query,
 	    success: function(data) {
+	      utils.busy(elem, false);
 	      elem.html(data.html);
 	      elem.find(".btn").attr("data-dismiss", "modal")
 			       .addClass("btn-primary");
