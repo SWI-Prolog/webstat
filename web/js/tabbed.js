@@ -239,8 +239,6 @@ var tabbed;
       if ( a ) {
 	a.tab('show');
       }
-
-      $(".storage").storage('chat_status', true);
     },
 
     /**
