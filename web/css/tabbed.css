@@ -155,7 +155,6 @@ div.restore-tab {
 }
 
 div.loading {
-  display: none;
   position: absolute;
   top: 0px;
   left: 0px;
@@ -165,5 +164,5 @@ div.loading {
   background-image: url("../icons/loading.gif");
   background-size: 64px;
   background-repeat: no-repeat;
-  background-position: 50% 100px;
+  background-position: 50% 30%;
 }

@@ -84,7 +84,6 @@ define(["jquery"],
       if ( val ) {
 	var busy;
 	elem.append(busy=$.el.div({class:"loading"}));
-	$(busy).show();
       } else {
 	elem.find("div.loading").remove();
       }
