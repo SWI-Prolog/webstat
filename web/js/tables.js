@@ -57,21 +57,25 @@ define([ "jquery", "config", "utils", "modal", "tabulator", "laconic", "form" ],
 
 	utils.busy(elem, true);
 
-	$.get(config.http.locations.predicate_tables,
-	      { predicate: options.predicate
-	      },
-	      function(data) {
-		utils.busy(elem, false);
-		elem.tabulator({
-		  data:data,
-		  layout:"fitDataFill",
-		  initialSort:[{column:"answers",dir:"desc"}],
-		  columns:columns(),
-		  rowClick:function(e, row){
-		    elem[pluginName]('clicked', row);
-		  }
-		});
-	      });
+	$.ajax({
+	  url: config.http.locations.predicate_tables,
+	  data: { predicate: options.predicate },
+	  success: function(data) {
+	    utils.busy(elem, false);
+	    elem.tabulator({
+	      data:data,
+	      layout:"fitDataFill",
+	      initialSort:[{column:"answers",dir:"desc"}],
+	      columns:columns(),
+	      rowClick:function(e, row){
+		elem[pluginName]('clicked', row);
+	      }
+	    });
+	  },
+	  error: function(jqXHDR) {
+	    modal.ajaxError(jqXHDR);
+	  }
+	});
 
 	elem.data(pluginName, data);	/* store with element */
       });

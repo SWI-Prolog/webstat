@@ -77,28 +77,32 @@ define([ "jquery", "utils", "config", "tabulator", "laconic" ],
 	  }
 	}
 
-	$.get(config.http.locations[options.handler],
-	      options.query,
-	      function(data) {
+	$.ajax({
+	  url: config.http.locations[options.handler],
+	  data: options.query,
+	  success: function(data) {
+	    utils.busy(elem, false);
 
-		utils.busy(elem, false);
+	    if ( data.data.length == 0 &&
+		 options.onempty ) {
+	       options.onempty.call(elem);
+	    } else {
+	      var div = $($.el.div({class: "tabulator-content"}));
+	      var opts = $.extend({
+	      data:data.data,
+	      layout:"fitDataFill",
+	      columns:data.columns
+	      }, options, data.table);
+	      del_props(opts, ['handler', 'query', 'onempty']);
 
-		if ( data.data.length == 0 &&
-		     options.onempty ) {
-		  options.onempty.call(elem);
-		} else {
-		  var div = $($.el.div({class: "tabulator-content"}));
-		  var opts = $.extend({
-		    data:data.data,
-		    layout:"fitDataFill",
-		    columns:data.columns
-		  }, options, data.table);
-		  del_props(opts, ['handler', 'query', 'onempty']);
-
-		  elem.empty().append(div);
-		  div.tabulator(opts);
-		}
-	      });
+	      elem.empty().append(div);
+	      div.tabulator(opts);
+	    }
+	  },
+	  error: function(jqXHDR) {
+	    modal.ajaxError(jqXHDR);
+	  }
+	});
 
 	elem.data(pluginName, data);	/* store with element */
       });

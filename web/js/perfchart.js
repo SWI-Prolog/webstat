@@ -94,10 +94,15 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 	});
 
 
-	$.get(config.http.locations.perf_series,
-	      function(data) {
-		elem[pluginName]('series', data);
-	      });
+	$.ajax({
+	  url: config.http.locations.perf_series,
+	  success: function(data) {
+	    elem[pluginName]('series', data);
+	  },
+	  error: function(jqXHDR) {
+	    modal.ajaxError(jqXHDR);
+	  }
+	});
       })
     },
 
@@ -336,10 +341,15 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
     update: function() {
       var elem = $(this);
 
-      $.get(config.http.locations.perf_sample,
-	    function(data) {
-	      elem[pluginName]('add_sample', data);
-	    });
+      $.ajax({
+        url: config.http.locations.perf_sample,
+	success: function(data) {
+	  elem[pluginName]('add_sample', data);
+	},
+	error: function(jqXHDR) {
+	  modal.ajaxError(jqXHDR);
+	}
+      });
     },
 
     /**

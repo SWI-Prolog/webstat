@@ -191,7 +191,8 @@ pred_edit(Request) :-
                     [ pi(PIS, [])
                     ]),
     pi_string_pi(PIS, PI),
-    edit(PI).
+    edit(PI),
+    reply_json(true).
 
 		 /*******************************
 		 *          COLLECT DATA	*

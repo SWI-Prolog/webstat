@@ -62,17 +62,22 @@ define([ "jquery", "config", "utils", "modal" ],
 	options = options||{};
 	if ( options.predicate ) query.focus = options.predicate;
 
-	$.get(config.http.locations.IDG,
-	      query,
-	      function(html) {
-		var hld = $($.el.div({class:"graph-holder"}));
-		utils.busy(elem, false);
+	$.ajax({
+	  url:config.http.locations.IDG,
+	  data: query,
+	  success: function(html) {
+	    var hld = $($.el.div({class:"graph-holder"}));
+	    utils.busy(elem, false);
 
-		elem.empty().append(hld);
-		hld.html(html);
-		utils.evalScripts(hld);
-		finish(hld.find("svg"));
-	      });
+	    elem.empty().append(hld);
+	    hld.html(html);
+	    utils.evalScripts(hld);
+	    finish(hld.find("svg"));
+	  },
+	  error: function(jqXHDR) {
+	    modal.ajaxError(jqXHDR);
+	  }
+	});
 
 	elem.data(pluginName, data);	/* store with element */
       });

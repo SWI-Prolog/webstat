@@ -111,21 +111,27 @@ define([ "jquery", "config", "utils", "modal", "form",
 	if ( action == 'show' ) {
 	  elem[pluginName]('show_predicates');
 	} else {
-	  $.get(config.http.locations.prof_control + action,
-		function(data) {
-		  if ( typeof(data) == 'object' ) {
-		    if ( data.new == 'cputime' ) {
-		      elem.find(".glyphicon-film").addClass("recording");
-		    } else if ( data.new == false ) {
-		      elem.find(".glyphicon-film").removeClass("recording");
-		      if ( data.clear ) {
-			elem.find(".prof_predicates").empty();
-			elem.find(".prof_graph").empty();
-			elem[pluginName]('help');
-		      }
-		    }
+	  $.ajax({
+	    url: config.http.locations.prof_control + action,
+	    dataType: "json",
+	    success: function(data) {
+	      if ( typeof(data) == 'object' ) {
+		if ( data.new == 'cputime' ) {
+		  elem.find(".glyphicon-film").addClass("recording");
+		} else if ( data.new == false ) {
+		  elem.find(".glyphicon-film").removeClass("recording");
+		  if ( data.clear ) {
+		    elem.find(".prof_predicates").empty();
+		    elem.find(".prof_graph").empty();
+		    elem[pluginName]('help');
 		  }
-		});
+		}
+	      }
+	    },
+	    error: function(jqXHDR) {
+	      modal.ajaxError(jqXHDR);
+	    }
+	  })
 	}
       });
 
@@ -150,14 +156,19 @@ define([ "jquery", "config", "utils", "modal", "form",
     help: function() {
       var elem = $(this);
 
-      $.get(config.http.locations.webstat_help + "/profiler.html",
-	    function(html) {
-	      var div;
-	      elem.find(".prof_predicates")
-		  .empty()
-		  .append(div=$($.el.div({class:"prof_help"})));
-	      div.html(html);
-	    });
+      $.ajax({
+        url: config.http.locations.webstat_help + "/profiler.html",
+	success: function(html) {
+	  var div;
+	  elem.find(".prof_predicates")
+	      .empty()
+	      .append(div=$($.el.div({class:"prof_help"})));
+	  div.html(html);
+	},
+	error: function(jqXHDR) {
+	  modal.ajaxError(jqXHDR);
+	}
+      });
     },
 
     clicked: function(row) {
@@ -170,18 +181,23 @@ define([ "jquery", "config", "utils", "modal", "form",
     graph: function(pred) {
       var elem = $(this);
 
-      $.get(config.http.locations.prof_graph,
-	    { focus: pred },
-	    function(html) {
-	      var div = elem.find(".prof_graph");
-	      var hld = $($.el.div({class:"graph-holder",
-				    style:"width:100px; height:100px;"}));
+      $.ajax({
+        url: config.http.locations.prof_graph,
+	data: { focus: pred },
+	success: function(html) {
+	  var div = elem.find(".prof_graph");
+	  var hld = $($.el.div({class:"graph-holder",
+	  style:"width:100px; height:100px;"}));
 
-	      div.empty().append(hld);
-	      hld.html(html);
-	      utils.evalScripts(hld);
-	      finish(div.find("svg"));
-	    });
+	  div.empty().append(hld);
+	  hld.html(html);
+	  utils.evalScripts(hld);
+	  finish(div.find("svg"));
+	},
+	error: function(jqXHDR) {
+	  modal.ajaxError(jqXHDR);
+	}
+      });
     }
   }; // methods
 

@@ -123,29 +123,35 @@ define([ "jquery", "config", "utils", "modal", "form",
 
       utils.busy(elem, true);
 
-      $.get(config.http.locations.tabled_predicates,
-	    function(sdata) {
-	      var ifilter;
+      $.ajax({
+        url: config.http.locations.tabled_predicates,
+	dataType: "json",
+	success: function(sdata) {
+	  var ifilter;
 
-	      utils.busy(elem, false);
-	      data.poll_time = Date.now()-start;
+	  utils.busy(elem, false);
+	  data.poll_time = Date.now()-start;
 
-	      var opts = {
-		data:sdata,
-		layout:"fitDataFill",
-		initialSort:[{column:"tables",dir:"desc"}],
-		columns:columns(),
-		rowClick:function(e, row){
-		  elem[pluginName]('clicked', row);
-		}
-	      };
+	  var opts = {
+	    data:sdata,
+	    layout:"fitDataFill",
+	    initialSort:[{column:"tables",dir:"desc"}],
+	    columns:columns(),
+	    rowClick:function(e, row){
+	      elem[pluginName]('clicked', row);
+	    }
+	  };
 
-	      ifilter = elem.find(".tpred_controller input").val();
-	      if ( ifilter != "" )
-		opts.initialFilter = [ {field:"variant", type:"like", value: ifilter} ];
+	  ifilter = elem.find(".tpred_controller input").val();
+	  if ( ifilter != "" )
+	    opts.initialFilter = [{field:"variant", type:"like", value: ifilter}];
 
-	      elem.find(".tpred_content").empty().tabulator(opts);
-	    });
+	  elem.find(".tpred_content").empty().tabulator(opts);
+	},
+	error: function(jqXHDR) {
+	  modal.ajaxError(jqXHDR);
+	}
+      });
     },
 
     clicked: function(row) {

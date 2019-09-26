@@ -57,17 +57,22 @@ define([ "jquery", "utils", "config", "tabulator" ],
 
 	utils.busy(elem, true);
 
-	$.get(config.http.locations.webstat_table,
-	      { variant: options.variant
-	      },
-	      function(data) {
-		utils.busy(elem, false);
-		elem.tabulator({
-		  data:data.answers,
-		  layout:"fitDataFill",
-		  columns:data.columns
-		});
-	      });
+	$.ajax({
+	  url: config.http.locations.webstat_table,
+	  data: { variant: options.variant
+	        },
+	  sucess: function(data) {
+	    utils.busy(elem, false);
+	    elem.tabulator({
+	      data:data.answers,
+	      layout:"fitDataFill",
+	      columns:data.columns
+	    });
+	  },
+	  error: function(jqXHDR) {
+	    modal.ajaxError(jqXHDR);
+	  }
+	});
 
 	elem.data(pluginName, data);	/* store with element */
       });

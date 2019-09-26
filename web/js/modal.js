@@ -249,13 +249,18 @@ define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
 	  var elem = $(this);
 	  var query = {pi: pred};
 
-	  $.get(config.http.locations.predicate_details,
-		query,
-		function(data) {
-		  elem.html(data.html);
-		  elem.find(".btn").attr("data-dismiss", "modal")
-				   .addClass("btn-primary");
-		});
+	  $.ajax({
+	    url: config.http.locations.predicate_details,
+	    data: query,
+	    success: function(data) {
+	      elem.html(data.html);
+	      elem.find(".btn").attr("data-dismiss", "modal")
+			       .addClass("btn-primary");
+	    },
+	    error: function(jqXHDR) {
+	      elem.swishModal('showAjaxError', jqXHDR);
+	    }
+	  });
 
 	  elem.on("click", "button.btn", function(ev) {
 	    var btn = $(ev.target).closest("button");
@@ -268,9 +273,15 @@ define([ "jquery", "config", "preferences", "laconic", "bootstrap" ],
 	    else if ( act == "listing" )
 	      ws.webstat('listing', { predicate: pred });
 	    else if ( act == "edit" )
-	      $.get(config.http.locations.edit_predicate,
-		    query,
-		    function() {});
+	      $.ajax({
+	        url: config.http.locations.edit_predicate,
+		data: query,
+		success: function() {
+		},
+		error: function(jqXHDR) {
+		  elem.swishModal('showAjaxError', jqXHDR);
+		}
+	      });
 	    else if ( act == "show_prof" )
 	      ws.webstat('profiler', { predicate: pred });
 	  });
