@@ -61,7 +61,7 @@ define([ "jquery", "utils", "config", "tabulator" ],
 	  url: config.http.locations.webstat_table,
 	  data: { variant: options.variant
 	        },
-	  sucess: function(data) {
+	  success: function(data) {
 	    utils.busy(elem, false);
 	    elem.tabulator({
 	      data:data.answers,
