@@ -219,7 +219,7 @@ svg(SVG, _Options) -->
        svg.width(w);
        svg.height(h);
        reactive();
-       if ( pan ) {
+       if ( pan && svg.is(":visible") ) {
 	 pan.resize();
 	 if ( w > data.w0 && h > data.h0 ) {
 	   pan.zoomBy(1);
