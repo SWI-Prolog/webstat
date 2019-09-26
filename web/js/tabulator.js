@@ -57,11 +57,13 @@ define([ "jquery", "tabulator-tables", "laconic" ],
 
 	elem.data(pluginName, data);	/* store with element */
 
-	elem.addClass("reactive-size");
+	elem.addClass("reactive-size swish-event-receiver");
 	elem.on('reactive-resize', function() {
-	  elem.css("height", elem.closest(".tab-pane").height()+"px");
-	  if ( data.table )
-	    data.table.redraw();
+	  if ( elem.is(":visible") )
+	    elem[pluginName]('redraw');
+	});
+	elem.on('activate-tab', function() {
+	  elem[pluginName]('redraw');
 	});
 
 	elem.css("height", elem.closest(".tab-pane").height()+"px");
@@ -70,6 +72,15 @@ define([ "jquery", "tabulator-tables", "laconic" ],
 
 	elem.data(pluginName, data);	/* store with element */
       });
+    },
+
+    redraw: function() {
+      var elem = $(this);
+      var data = elem.data(pluginName);
+
+      elem.css("height", elem.closest(".tab-pane").height()+"px");
+      if ( data.table )
+	data.table.redraw();
     },
 
     setFilter: function(field, cmp, val) {

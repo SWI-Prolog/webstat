@@ -77,7 +77,7 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 	var hsplit;
 
 	elem.data(pluginName, data);	/* store with element */
-	elem.addClass("perfchart reactive-size listen-close-event");
+	elem.addClass("perfchart reactive-size swish-event-receiver listen-close-event");
 	elem[pluginName]('controller');
 	elem.append(hsplit=$($.el.div({class: "hsplit_lp"})));
 	elem[pluginName]('series_menu');
@@ -92,7 +92,9 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 	    delete(data.timer);
 	  }
 	});
-
+	elem.on('activate-tab', function() {
+	  elem[pluginName]('redraw');
+	});
 
 	$.ajax({
 	  url: config.http.locations.perf_series,
@@ -356,7 +358,8 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
      * Add an individual sample
      */
     add_sample: function(options) {
-      var data   = $(this).data(pluginName);
+      var elem   = $(this);
+      var data   = elem.data(pluginName);
       var sample = options.sample||{};
       var x      = data.x++;
       var xaxis  = data.plot.getAxes().xaxis;
@@ -381,9 +384,23 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 	}
       }
 
-      data.plot.setData(data.flot_data);
-      data.plot.setupGrid();			/* remove if grid is fixed */
-      data.plot.draw();
+      if ( elem.is(":visible") ) {
+	data.plot.setData(data.flot_data);
+	data.plot.setupGrid();			/* remove if grid is fixed */
+	data.plot.draw();
+      }
+    },
+
+    redraw: function() {
+      var elem   = $(this);
+      var data   = elem.data(pluginName);
+
+      if ( elem.is(":visible") ) {
+	data.plot.setData(data.flot_data);
+	data.plot.resize();
+	data.plot.setupGrid();			/* remove if grid is fixed */
+	data.plot.draw();
+      }
     },
 
     clear: function() {
@@ -406,34 +423,37 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 
     resize: function() {
       var elem  = $(this);
-      var data  = elem.data(pluginName);
-      var xaxis = data.plot.getAxes().xaxis;
-      var neww  = Math.round(elem.width()/2);
-      var min   = xaxis.options.min;
 
-      data.samples = neww;
+      if ( elem.is(":visible") ) {
+	var data  = elem.data(pluginName);
+	var xaxis = data.plot.getAxes().xaxis;
+	var neww  = Math.round(elem.width()/2);
+	var min   = xaxis.options.min;
 
-      if ( neww < data.x ) {
-	var newmin = data.x - neww;
-	var rm = newmin - min;
+	data.samples = neww;
 
-	for(var p in data.series) {
-	  if ( data.series.hasOwnProperty(p) ) {
-	    var series = data.series[p];
+	if ( neww < data.x ) {
+	  var newmin = data.x - neww;
+	  var rm = newmin - min;
 
-	    series.data.splice(0, rm);
+	  for(var p in data.series) {
+	    if ( data.series.hasOwnProperty(p) ) {
+	      var series = data.series[p];
+
+	      series.data.splice(0, rm);
+	    }
 	  }
+
+	  xaxis.options.max = data.x;
+	  xaxis.options.min = newmin;
+	} else {
+	  xaxis.options.max = xaxis.options.min + data.samples;
 	}
 
-	xaxis.options.max = data.x;
-	xaxis.options.min = newmin;
-      } else {
-	xaxis.options.max = xaxis.options.min + data.samples;
+	data.plot.resize();
+	data.plot.setupGrid();
+	data.plot.draw();
       }
-
-      data.plot.resize();
-      data.plot.setupGrid();
-      data.plot.draw();
     }
   }; // methods
 
