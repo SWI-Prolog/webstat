@@ -58,6 +58,7 @@ define([ "jquery", "config", "utils", "modal" ],
 
 	utils.busy(elem, true);
 	elem.addClass("graphviz-sizer");
+	elem.css("height", "100%");
 
 	options = options||{};
 	if ( options.predicate ) query.focus = options.predicate;
