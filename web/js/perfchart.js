@@ -55,10 +55,10 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
     },
     yaxis: {
       min: 1,
-      max: 10000000000,
+      max: 100000000000,
       ticks: [ 1,10,100,1000,10000,100000,
 	       1000000,10000000,100000000,1000000000,
-	       10000000000
+	       10000000000, 100000000000
 	     ],
       tickFormatter: suffixFormatter,
       transform: function(v) {return Math.log(v+1);}
