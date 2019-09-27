@@ -42,6 +42,7 @@
 :- use_module(library(apply)).
 :- use_module(library(option)).
 :- use_module(library(prolog_code)).
+:- use_module(library(lists)).
 
 :- use_module(webstat(lib/graphviz)).
 :- use_module(webstat(lib/util)).
@@ -200,8 +201,9 @@ relatives(Data, To, Options) -->
     relatives(Data.callers, caller, To, Options),
     relatives(Data.callees, callee, To, Options).
 
-relatives([node('<recursive>',_Cycle,_Ticks,_TicksSiblings,
-                Calls, _Redos, _Exits)|T], Dir, To, Options) -->
+relatives(Nodes, Dir, To, Options) -->
+    { select(node('<recursive>',_Cycle,_Ticks,_TicksSiblings,
+                  Calls, _Redos, _Exits), Nodes, T) },
     !,
     { edge_attrs(Calls, Attrs) },
     [ edge(To-To, [labeltooltip('Recursive calls')|Attrs]) ],
@@ -272,6 +274,8 @@ profile_node(PI, Id,
     pi_label(PI, Label, Attrs),
     pi_shape(PI, Extra0, Extra).
 
+pi_label('<spontaneous>', html(i('<spontaneous>')), _) :-
+    !.
 pi_label(PI, html([Label, br([]),
                    font('point-size'(10), PercLabel)]), [time(Perc)]) :-
     !,
@@ -280,6 +284,8 @@ pi_label(PI, html([Label, br([]),
 pi_label(PI, Label, _) :-
     predicate_label(PI, Label).
 
+pi_shape('<spontaneous>', [shape(egg), tooltip('Unknown caller')|T], T) :-
+    !.
 pi_shape(PI, Shape, Tail) :-
     pi_head(PI, Head),
     shape(Head, Shape, Tail).
