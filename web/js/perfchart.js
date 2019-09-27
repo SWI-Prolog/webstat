@@ -384,7 +384,7 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 	if ( data.series.hasOwnProperty(p) ) {
 	  var series = data.series[p];
 
-	  if ( sample[p] ) {
+	  if ( sample[p] || series.zero_ok ) {
 	    if ( rm )
 	      series.data.splice(0, rm);
 	    series.data.push([x, sample[p]]);

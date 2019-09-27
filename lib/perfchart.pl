@@ -107,11 +107,13 @@ stat_series(stack,
 stat_series(thread_cpu,
             _{ label: "Thread CPU",
                unit:  percent,
+               zero_ok: true,
                active: true
              }).
 stat_series(process_cpu,
             _{ label: "Process CPU",
                unit:  percent,
+               zero_ok: true,
                active: true
              }).
 
