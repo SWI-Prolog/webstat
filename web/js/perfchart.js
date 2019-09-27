@@ -55,10 +55,10 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
     },
     yaxis: {
       min: 1,
-      max: 100000000000,
+      max: 1000000000000,
       ticks: [ 1,10,100,1000,10000,100000,
 	       1000000,10000000,100000000,1000000000,
-	       10000000000, 100000000000
+	       10000000000, 100000000000, 1000000000000
 	     ],
       tickFormatter: suffixFormatter,
       transform: function(v) {return Math.log(v+1);}
@@ -458,6 +458,8 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
   }; // methods
 
   function suffixFormatter(val, axis) {
+    if (val >= 1000000000000)
+      return (val / 1000000000000).toFixed(axis.tickDecimals) + " T";
     if (val >= 1000000000)
       return (val / 1000000000).toFixed(axis.tickDecimals) + " G";
     else if (val >= 1000000)
