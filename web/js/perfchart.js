@@ -325,6 +325,8 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 	  if ( (value = val(series.data, x)) != undefined ) {
 	    if ( series.unit == 'bytes' )
 	      str = utils.human_size(value);
+	    else if ( series.unit == 'percent' )
+	      str = value + "%";
 	    else
 	      str = utils.human_count(value);
 	    hasval++;

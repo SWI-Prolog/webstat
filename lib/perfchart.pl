@@ -104,6 +104,17 @@ stat_series(stack,
                active: true
              }).
 
+stat_series(thread_cpu,
+            _{ label: "Thread CPU",
+               unit:  percent,
+               active: true
+             }).
+stat_series(process_cpu,
+            _{ label: "Process CPU",
+               unit:  percent,
+               active: true
+             }).
+
 stat_series(atoms,
             _{ label: "Atoms"
              }).
@@ -143,6 +154,30 @@ active_stat(Name, Value) :-
     ;   webstat:stat_value(Name, Value),
         once(webstat:stat_series(Name, _))
     ).
+
+:- thread_local
+    prev_sample/3.
+
+stat(thread_cpu, Value) :-
+    get_time(Wall1),
+    statistics(cputime, CPU1),
+    debug(profiler, 'stat(thread_cpu, ~p)', [CPU1]),
+    (   retract(prev_sample(thread_cputime, Wall0, CPU0))
+    ->  asserta(prev_sample(thread_cputime, Wall1, CPU1)),
+        Value is round(100*(CPU1-CPU0)/(Wall1-Wall0))
+    ;   asserta(prev_sample(thread_cputime, Wall1, CPU1)),
+        Value is 0
+    ).
+stat(process_cpu, Value) :-
+    get_time(Wall1),
+    statistics(process_cputime, CPU1),
+    (   retract(prev_sample(process_cputime, Wall0, CPU0))
+    ->  asserta(prev_sample(process_cputime, Wall1, CPU1)),
+        Value is round(100*(CPU1-CPU0)/(Wall1-Wall0))
+    ;   asserta(prev_sample(process_cputime, Wall1, CPU1)),
+        Value = 0
+    ).
+
 
 stat(global, Value) :-
     statistics(globalused, Value).
