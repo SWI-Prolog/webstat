@@ -48,3 +48,7 @@ label.sample-rate { margin-left: 2ex; margin-right: 1ex; }
   text-align: right;
   font-family: Monospace;
 }
+
+.glyphicon-play.recording {
+  color: red;
+}

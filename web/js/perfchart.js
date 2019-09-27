@@ -196,6 +196,12 @@ define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
 	  elem[pluginName]('update');
 	}, data.rate);
       }
+
+      var btn = elem.find(".controller .glyphicon-play");
+      if ( how )
+	btn.addClass("recording");
+      else
+	btn.removeClass("recording");
     },
 
     controller: function() {
