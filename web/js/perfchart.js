@@ -395,9 +395,13 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
       }
 
       if ( elem.is(":visible") ) {
-	data.plot.setData(data.flot_data);
-	data.plot.setupGrid();			/* remove if grid is fixed */
-	data.plot.draw();
+	var now = Date.now();
+	if ( !(data.last_redraw && now - data.last_redraw < 1000) ) {
+	  data.last_redraw = now;
+	  data.plot.setData(data.flot_data);
+	  data.plot.setupGrid();		/* remove if grid is fixed */
+	  data.plot.draw();
+	}
       }
     },
 
