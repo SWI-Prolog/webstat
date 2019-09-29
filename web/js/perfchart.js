@@ -358,6 +358,7 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
 	  elem[pluginName]('add_sample', data);
 	},
 	error: function(jqXHDR) {
+	  elem[pluginName]('play', false);	/* stop on error */
 	  modal.ajaxError(jqXHDR);
 	}
       });
