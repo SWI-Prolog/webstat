@@ -42,8 +42,9 @@
  * @requires jquery
  */
 
-define([ "jquery", "config", "flot", "utils", "form", "palette", "laconic" ],
-       function($, config, plot, utils, form) {
+define([ "jquery", "config", "flot", "utils", "form", "modal",
+	 "palette", "laconic" ],
+       function($, config, plot, utils, form, modal) {
 
 (function($) {
   var pluginName = 'perfchart';

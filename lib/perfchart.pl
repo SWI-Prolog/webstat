@@ -133,8 +133,9 @@ stat_series(predicates,
 stat_series(clauses,
             _{ label: "clauses"
              }).
-stat_series(codes,
-            _{ label: "VM instructions"
+stat_series(code_mem,
+            _{ label: "Memory for VM code",
+               unit:  bytes
              }).
 
 stat_series(tables,
@@ -201,8 +202,10 @@ stat(predicates, Value) :-
     statistics(predicates, Value).
 stat(clauses, Value) :-
     statistics(clauses, Value).
-stat(codes, Value) :-
-    statistics(codes, Value).
+stat(code_mem, Bytes) :-
+    statistics(codes, Codes),
+    current_prolog_flag(address_bits, Bits),
+    Bytes is Codes*(Bits/8).
 
 stat(tables, Value) :-
     aggregate_all(sum(C), ('$tbl_variant_table'(VariantTrie),
