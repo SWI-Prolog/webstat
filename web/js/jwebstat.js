@@ -49,6 +49,7 @@ define([ "jquery",
 	 "navbar",
 	 "bootstrap",
 	 "tabbed",
+	 "push",
 
 	 "tabled_preds",
 	 "tables",
@@ -101,6 +102,7 @@ define([ "jquery",
 	$("#content").tabbed();
 
 	elem.data(pluginName, data);	/* store with element */
+	elem.ws_push();
       });
     },
 
