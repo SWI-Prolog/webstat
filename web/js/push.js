@@ -120,8 +120,16 @@ var MAX_RECONNECT_DELAY = 300000;
       };
     },
 
+		 /*******************************
+		 *	      DISPATCH		*
+		 *******************************/
+
     alert: function(msg) {
       console.log(msg);
+    },
+
+    debug: function(msg) {
+      $(".ws_debug").ws_debug('add_message', msg);
     }
   }; // methods
 

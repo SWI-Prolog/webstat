@@ -112,6 +112,10 @@ define([ "jquery", "laconic" ],
 	return $.el.button(attrs, form.widgets.glyphIcon(glyph));
       },
 
+      separator: function() {
+	return $("<span class='menu-space'>&nbsp</span>");
+      },
+
       checkbox: function(name, options) {
 	var opts = {type:"checkbox", name:name};
 	var lopts = {};

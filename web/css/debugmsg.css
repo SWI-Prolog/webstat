@@ -1,0 +1,19 @@
+.ws_debug_content {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+.ws_debug_topics .tabulator-tableHolder {
+  overflow-x: hidden !important;
+  flex-grow: 0;
+}
+
+.ws_debug_messages {
+  position: relative;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.ws_debug_controller span.menu-space {float: none;}

@@ -51,10 +51,14 @@ define([ "jquery", "tabulator-tables", "laconic" ],
   /** @lends $.fn.tabulator */
   var methods = {
     _init: function(options) {
+      var voffset = options.voffset||0;
+      delete options.voffset;
+
       return this.each(function() {
 	var elem = $(this);
 	var data = {};			/* private data */
 
+	data.voffset = voffset;
 	elem.data(pluginName, data);	/* store with element */
 
 	elem.addClass("reactive-size swish-event-receiver");
@@ -66,7 +70,7 @@ define([ "jquery", "tabulator-tables", "laconic" ],
 	  elem[pluginName]('redraw');
 	});
 
-	elem.css("height", elem.closest(".tab-pane").height()+"px");
+	elem.css("height", (elem.closest(".tab-pane").height()-voffset)+"px");
 	data.table = new Tabulator(elem[0], options);
 	data.table.redraw();
 
@@ -78,7 +82,7 @@ define([ "jquery", "tabulator-tables", "laconic" ],
       var elem = $(this);
       var data = elem.data(pluginName);
 
-      elem.css("height", elem.closest(".tab-pane").height()+"px");
+      elem.css("height", (elem.closest(".tab-pane").height()-data.voffset)+"px");
       if ( data.table )
 	data.table.redraw();
     },
@@ -87,6 +91,14 @@ define([ "jquery", "tabulator-tables", "laconic" ],
       var data = $(this).data(pluginName);
 
       data.table.setFilter(field, cmp, val);
+    },
+
+    table: function() {
+      var elem = $(this);
+
+      if ( elem.length == 1 ) {
+	return elem.data(pluginName).table;
+      }
     }
   }; // methods
 

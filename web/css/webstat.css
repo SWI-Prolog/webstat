@@ -2,12 +2,14 @@
 @import url("tabbed.css");
 @import url("types.css");
 @import url("pred.css");
+@import url("tabulator.css");
 @import url("tabbed_preds.css");
 @import url("perfchart.css");
 @import url("profiler.css");
 @import url("form.css");
 @import url("modal.css");
 @import url("graphviz.css");
+@import url("debugmsg.css");
 @import url("../node_modules/bootstrap/dist/css/bootstrap.css");
 @import url("../node_modules/tabulator-tables/dist/css/tabulator.css");
 

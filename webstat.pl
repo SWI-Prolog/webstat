@@ -186,4 +186,5 @@ alt(rjs, 'node_modules/requirejs/require.js', -).
 :- use_module(webstat('lib/perfchart')).
 :- use_module(webstat('lib/profiler')).
 :- use_module(webstat('lib/push')).
+:- use_module(webstat('lib/debug')).
 

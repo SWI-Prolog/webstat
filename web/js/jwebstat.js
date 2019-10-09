@@ -57,7 +57,8 @@ define([ "jquery",
 	 "server_table",
 	 "table",
 	 "perfchart",
-	 "profiler"
+	 "profiler",
+	 "debugmsg"
        ],
        function($, modal, config) {
 
@@ -73,6 +74,11 @@ define([ "jquery",
 	"Execution profiler": function() {
 	  $("body").webstat('profiler');
 	},
+      },
+      "Debug":
+      { "Debug messages": function() {
+	  $("body").webstat('debug_messages');
+	}
       },
       "Tabling":
       { "Tabled predicates": function() {
@@ -143,6 +149,16 @@ define([ "jquery",
 		 /*******************************
 		 *    CREATE UI COMPONENTS	*
 		 *******************************/
+
+    /**
+     * Show debug messages
+     */
+    debug_messages: function(options) {
+      this.webstat('tab', {
+        label: "Debug messages",
+	page: true
+      }).ws_debug(options);
+    },
 
     /**
      * Show tabled predicates

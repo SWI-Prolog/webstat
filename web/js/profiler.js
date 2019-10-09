@@ -93,15 +93,15 @@ define([ "jquery", "config", "utils", "modal", "form",
       });
 
       ctrl.append(br=$($.el.div({class:"btn-group"})));
-      br.append($("<span class='menu-space'>&nbsp</span>"),
+      br.append(form.widgets.separator(),
 		form.widgets.glyphIconButton("erase", {
 		  action:'reset', title:"Clear recorded profile data"}),
-		$("<span class='menu-space'>&nbsp</span>"),
+		form.widgets.separator(),
 		form.widgets.glyphIconButton("film", {
 		  action:'record', title:"Record profile data"}),
 		form.widgets.glyphIconButton("pause", {
 		  action:'pause', title:"Pause recording profile data"}),
-		$("<span class='menu-space'>&nbsp</span>"),
+		form.widgets.separator(),
 		form.widgets.glyphIconButton("eye-open", {
 		  action:'show', title:"Show profile data"}));
 

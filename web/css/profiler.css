@@ -9,7 +9,7 @@
 }
 
 .prof_predicates .tabulator-tableHolder {
-  padding-right: 1.5ex;				/* space for scrollbar */
+  padding-right: 1.3ex;				/* space for scrollbar */
   overflow-x: hidden !important;
   flex-grow: 0;
 }
