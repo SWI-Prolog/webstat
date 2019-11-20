@@ -47,7 +47,8 @@
 
 :- multifile
     webstat:stat_series/2,
-    webstat:stat_value/2.
+    webstat:stat_value/2,
+    webstat:stat_disabled/1.
 
 :- http_handler(webstat_api('perf/sample'), perf_sample, [id(perf_sample)]).
 :- http_handler(webstat_api('perf/series'), perf_series, [id(perf_series)]).
@@ -65,9 +66,11 @@ perf_series(_Request) :-
 
 stat_series(Dict) :-
     webstat:stat_series(Name, Props),
+    \+ webstat:stat_disabled(Name),
     Dict = Props.put(name, Name).
 stat_series(Dict) :-
     stat_series(Name, Props),
+    \+ webstat:stat_disabled(Name),
     Dict = Props.put(name, Name).
 
 
@@ -107,8 +110,7 @@ stat_series(stack,
 stat_series(thread_cpu,
             _{ label: "Thread CPU",
                unit:  percent,
-               zero_ok: true,
-               active: true
+               zero_ok: true
              }).
 stat_series(process_cpu,
             _{ label: "Process CPU",
@@ -156,12 +158,14 @@ active_stat(Name, Value) :-
         once(stat_series(Name, _))
     ;   webstat:stat_value(Name, Value),
         once(webstat:stat_series(Name, _))
-    ).
+    ),
+    \+ webstat:stat_disabled(Name).
 
 :- thread_local
     prev_sample/3.
 
 stat(thread_cpu, Value) :-
+    \+ webstat:stat_disabled(thread_cpu),
     get_time(Wall1),
     statistics(cputime, CPU1),
     debug(profiler, 'stat(thread_cpu, ~p)', [CPU1]),
@@ -172,6 +176,7 @@ stat(thread_cpu, Value) :-
         Value is 0
     ).
 stat(process_cpu, Value) :-
+    \+ webstat:stat_disabled(process_cpu),
     get_time(Wall1),
     statistics(process_cputime, CPU1),
     (   retract(prev_sample(process_cputime, Wall0, CPU0))
@@ -208,6 +213,7 @@ stat(code_mem, Bytes) :-
     Bytes is Codes*(Bits/8).
 
 stat(tables, Value) :-
+    \+ webstat:stat_disabled(tables),
     aggregate_all(sum(C), ('$tbl_variant_table'(VariantTrie),
                            trie_property(VariantTrie, value_count(C))),
                   Value).
@@ -220,28 +226,60 @@ stat_series(malloc,
             _{ label: "Malloc in use",
                title: "Malloc'ed memory in use",
                unit:  bytes
-             }).
+             }) :-
+    \+ webstat:stat_disabled(mallinfo).
 stat_series(mfree,
             _{ label: "Malloc free",
                title: "Freed memory not reused",
                unit:  bytes
-             }).
+             }) :-
+    \+ webstat:stat_disabled(mallinfo).
 :- if(current_predicate(procps_stat/1)).
 stat_series(rss,
             _{ label: "RSS memory",
                title: "Resident Set Size",
                unit:  bytes
-             }).
+             }) :-
+    \+ webstat:stat_disabled(procps).
 stat_series(heap,
             _{ label: "Heap memory",
                title: "RSS - stacks - free",
                unit:  bytes
-             }).
+             }) :-
+    \+ webstat:stat_disabled(mallinfo),
+    \+ webstat:stat_disabled(procps).
 :- endif.
 
+% Overall memory usage stats. Only for Linux.  Note that mallinfo() is a
+% GNU extension and does not report  values   larger  than  4Gb. It also
+% tends to get really slow if  the   amount  of allocated memory becomes
+% large. Add the line below to your   project  to disable using mallinfo
+% based stats.
+%
+%     webstat:stat_disabled(mallinfo)
+%
+% RSS is extracted from the Linux /proc  file system and can be disabled
+% using
+%
+%     webstat:stat_disabled(procps)
+
 stat(Stat, Value) :-
-    mallinfo(Dict),
-    mallinfo_stat(Stat, Dict, Value).
+    (   (   webstat:stat_disabled(malloc),
+            webstat:stat_disabled(mfree),
+            webstat:stat_disabled(heap)
+        ;   webstat:stat_disabled(mallinfo)
+        )
+    ->  (   (   webstat:stat_disabled(rss)
+            ;   webstat:stat_disabled(procps)
+            )
+        ->  fail
+        ;   procps_stat(ProcPS),
+            Stat = rss,
+            Value is ProcPS.rss
+        )
+    ;   mallinfo(Dict),
+        mallinfo_stat(Stat, Dict, Value)
+    ).
 
 mallinfo_stat(malloc, Dict, Value) :-
     Value = Dict.uordblks.
@@ -249,6 +287,7 @@ mallinfo_stat(mfree, Dict, Value) :-
     Value = Dict.fordblks.
 :- if(current_predicate(procps_stat/1)).
 mallinfo_stat(Stat, Mallinfo, Value) :-
+    \+ webstat:stat_disabled(procps),
     procps_stat(ProcPS),
     procps_mallinfo_stat(Stat, Mallinfo, ProcPS, Value).
 
@@ -257,5 +296,7 @@ procps_mallinfo_stat(heap, Mallinfo, ProcPS, Value) :-
     Value is ProcPS.rss - Mallinfo.fordblks - Stack.
 procps_mallinfo_stat(rss, _Mallinfo, ProcPS, Value) :-
     Value is ProcPS.rss.
+:- else.
+procps_stat(_) :- fail.
 :- endif.
 :- endif.
