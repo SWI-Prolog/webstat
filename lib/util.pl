@@ -42,7 +42,11 @@
 
 %!  in_thread(+Thread, :Goal) is semidet.
 %
-%   Run Goal using thread_signal/2 in the context of Thread.
+%   Run Goal as an interrupt in the context  of Thread. This is based on
+%   thread_signal/2. If waiting times  out,   we  inject  a stop(Reason)
+%   exception into Goal. Interrupts can be   nested, i.e., it is allowed
+%   to run an in_thread/2 while the target  thread is processing such an
+%   interrupt.
 
 in_thread(Thread, Goal) :-
     thread_self(Thread),
@@ -53,7 +57,9 @@ in_thread(Thread, Goal) :-
     thread_self(Me),
     A is random(1 000 000 000),
     thread_signal(Thread, run_in_thread(Goal,Vars,A,Me)),
-    thread_get_message(in_thread(A,Result)),
+    catch(thread_get_message(in_thread(A,Result)),
+          Error,
+          forward_exception(Thread, A, Error)),
     (   Result = true(Vars)
     ->  true
     ;   Result = error(Error)
@@ -65,10 +71,30 @@ run_in_thread(Goal, Vars, Id, Sender) :-
     (   catch_with_backtrace(call(Goal), Error, true)
     ->  (   var(Error)
         ->  thread_send_message(Sender, in_thread(Id, true(Vars)))
+        ;   Error = stop(_)
+        ->  true
         ;   thread_send_message(Sender, in_thread(Id, error(Error)))
         )
     ;   thread_send_message(Sender, in_thread(Id, false))
     ).
+
+forward_exception(Thread, Id, Error) :-
+    kill_with(Error, Kill),
+    thread_signal(Thread, kill_task(Id, Kill)),
+    throw(Error).
+
+kill_with(time_limit_exceeded, stop(time_limit_exceeded)) :-
+    !.
+kill_with(_, stop(interrupt)).
+
+kill_task(Id, Exception) :-
+    prolog_current_frame(Frame),
+    prolog_frame_attribute(Frame, parent_goal,
+                           run_in_thread(_Goal, _Vars, Id, _Sender)),
+    !,
+    throw(Exception).
+kill_task(_, _).
+
 
 %!  to_primitive(+Prolog, -Primitive)
 %
