@@ -79,6 +79,9 @@ idg_graph_(digraph(Graph), Options) :-
     focussed_idg(PI, Graph, Options).
 idg_graph_(digraph(Graph), _Options) :-
     idg_predicate_edges(Edges),
+    edged_to_graph(Edges, Graph).
+
+edged_to_graph(Edges, Graph) :-
     maplist(arg(1), Edges, From),
     maplist(arg(2), Edges, To),
     append(From, To, Preds0),
@@ -89,15 +92,23 @@ idg_graph_(digraph(Graph), _Options) :-
 
 focussed_idg(Focus, [FocusNode|Graph], _Options) :-
     predicate_node(Focus, FocusNode, [penwidth(2)]),
-    findall(Edge-P2, predicate_edge([Focus], dependent, Edge, P2), DepPairs),
-    findall(Edge-P2, predicate_edge([Focus], affected,  Edge, P2), AffPairs),
-    pairs_keys_values(DepPairs, DepEdges, Deps),
-    pairs_keys_values(AffPairs, AffEdges, Affs),
-    append(Deps, Affs, Expanded0),
-    delete(Expanded0, Focus, Expanded),
-    inter_edges(Expanded, InterEdges),
-    append(DepEdges, AffEdges, NEdges),
-    append([InterEdges|NEdges], Graph).
+    idg_predicate_edges(Edges),
+    include(affected(Focus), Edges, Affected),
+    include(dependent(Focus), Edges, Dependent),
+    findall(Link, interlink(Edges, Affected, Dependent, Link), Links),
+    append([Affected, Dependent, Links], Neighbours),
+    edged_to_graph(Neighbours, Graph).
+
+affected(Node, edge(Node,_,_)).
+dependent(Node, edge(_,Node,_)).
+
+interlink(Edges, Affected, Dependent, Edge) :-
+    member(edge(_,P1,_), Affected),
+    member(edge(P2,_,_), Dependent),
+    member(Edge, Edges),
+    (   Edge = edge(P1,P2,_)
+    ;   Edge = edge(P2,P1,_)
+    ).
 
 predicate_node(PI, Node) :-
     predicate_node(PI, Node, []).
@@ -121,49 +132,7 @@ predicate_edge(edge(From,To,Count),
     node_id(From, IDFrom),
     node_id(To, IDTo),
     W is 1+log10(Count),
-    edge_tooltip(From, affected, To, Count, Tooltip).
-
-predicate_edge(Preds, Dir,
-               [ edge(Edge,
-                      [ penwidth(W), label(Count),
-                        labeltooltip(Tooltip),
-                        edgetooltip(Tooltip)
-                      ])
-               | More
-               ], P2) :-
-    edge_dir(Dir, IDFrom, IDTo, Edge),
-    member(P, Preds),
-    node_id(P, IDFrom),
-    debug(idg, '  ~p', [P]),
-    idg_predicate_edge(P, Dir, P2, Count),
-    (   Dir == affected
-    ->  P \== P2
-    ;   true
-    ),
-    debug(idg, '     ~p', [P2]),
-    W is 1+log10(Count),
-    edge_tooltip(P, Dir, P2, Count, Tooltip),
-    (   assigned(P2, IDTo)
-    ->  More = []
-    ;   node_id(P2, IDTo),
-        predicate_node(P2, Node),
-        More = [Node]
-    ).
-
-edge_dir(dependent, IDFrom, IDTo, IDFrom-IDTo).
-edge_dir(affected,  IDFrom, IDTo, IDTo-IDFrom).
-
-inter_edges(Preds, Edges) :-
-    findall(Edge, inter_edge(Preds, Edge), Edges).
-
-inter_edge(Preds, edge(IDFrom-IDTo, [penwidth(W), label(Count)])) :-
-    member(P1, Preds),
-    member(P2, Preds),
-    P1 @> P2,
-    idg_predicate_edge(P1, dependent, P2, Count),
-    node_id(P1, IDFrom),
-    node_id(P2, IDTo),
-    W is 1+log10(Count).
+    edge_tooltip(From, dependent, To, Count, Tooltip).
 
 %!  shape(+PI, -Attrs, ?Tail)
 

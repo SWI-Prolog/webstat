@@ -222,14 +222,14 @@ table(M:Variant, Trie) :-
 
 idg_predicate_edges(Edges) :-
     findall(PI1-PI2, idg_pi_edge(PI1,PI2), Pairs),
-    sort(Pairs, Sorted),
+    msort(Pairs, Sorted),
     counts(Sorted, Edges).
 
 idg_pi_edge(PI1, PI2) :-
     '$tbl_variant_table'(VariantTrie),
     trie_gen(VariantTrie, _, Trie),
     '$tbl_table_pi'(Trie, PI1),
-    '$idg_edge'(Trie, affected, Trie2),
+    '$idg_edge'(Trie, dependent, Trie2),
     '$tbl_table_pi'(Trie2, PI2).
 
 counts([], []).
