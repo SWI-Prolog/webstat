@@ -76,6 +76,7 @@ define([ "jquery", "config", "utils", "modal" ],
 	    finish(hld.find("svg"));
 	  },
 	  error: function(jqXHDR) {
+	    utils.busy(elem, false);
 	    modal.ajaxError(jqXHDR);
 	  }
 	});
