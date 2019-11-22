@@ -55,6 +55,9 @@
 :- http_handler(webstat_api('profiler/graph'), prof_graph,
                 [id(prof_graph)]).
 
+:- dynamic
+    profile_data/3.                     % Thread, Data, Time
+
 %!  prof_control(+Action, +Request)
 %
 %   Control the profiler.
@@ -71,7 +74,19 @@ prof_do_control(record, json{prev:Old,new:cputime}) :-
 prof_do_control(pause,  json{prev:Old,new:false}) :-
     profiler(Old, false).
 prof_do_control(reset,  json{new:false, clear:true}) :-
+    thread_id(Id),
+    retractall(profile_data(Id, _, _)),
     reset_profiler.
+
+thread_id(Id) :-
+    thread_self(Me),
+    thread_id(Me, Id).
+
+thread_id(Me, Id) :-
+    (   atom(Me)
+    ->  Id = Me
+    ;   thread_property(Me, id(Id))
+    ).
 
 %!  prof_predicates(+Action)
 %
@@ -82,6 +97,9 @@ prof_predicates(Request) :-
                     [ thread(Thread, [default(main)])
                     ]),
     in_thread(Thread, profile_data(Data)),
+    thread_id(Thread, Id),
+    get_time(Now),
+    asserta(profile_data(Id, Now, Data)),
     Summary = Data.summary,
     Total is max(0, Summary.ticks-Summary.accounting),
     maplist(pred_row(Total), Data.nodes, Predicates),
@@ -178,7 +196,11 @@ prof_graph(Request) :-
                       focus(FocusS, [])
                     ]),
     pi_string_pi(FocusS, Focus),
-    in_thread(Thread, profile_data(Data)), % TBD: Cache?
+    thread_id(Thread, Id),
+    (   profile_data(Id, _Time, Data)
+    ->  true
+    ;   in_thread(Thread, profile_data(Data))
+    ),
     Summary = Data.summary,
     Total is max(0, Summary.ticks-Summary.accounting),
     call_cleanup(prof_graph(Data, Focus, Graph, [total(Total)]),
