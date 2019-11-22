@@ -55,7 +55,7 @@
 
 :- http_handler(webstat_api('table/IDG'), idg, [id('IDG')]).
 
-%!  idg(+Request)j
+%!  idg(+Request)
 %
 %   Produce the IDG as a graphviz   graph. Optionally takes `thread` and
 %   `focus` parameters. The latter takes a predicate indicator and shows
@@ -67,15 +67,15 @@ idg(Request) :-
                       focus(Focus, [optional(true)])
                     ]),
     include(ground, [focus(Focus)], Options),
-    in_thread(Thread, idg_graph(Graph, Options)),
+    in_thread(Thread, idg_graph(Thread, Graph, Options)),
     reply_graph(Graph, []).
 
-idg_graph(Graph, Options) :-
+idg_graph(Thread, Graph, Options) :-
     call_cleanup(
-        idg_graph_(Graph, Options),
+        idg_graph_(Thread, Graph, Options),
         retractall(assigned(_,_))).
 
-idg_graph_(digraph(Graph), Options) :-
+idg_graph_(Thread, digraph(Graph), Options) :-
     debug(idg, 'Creating IDG from options = ~p', [Options]),
     option(focus(Focus), Options),
     !,
@@ -83,9 +83,9 @@ idg_graph_(digraph(Graph), Options) :-
     ->  pi_string_pi(Focus, PI)
     ;   PI = Focus
     ),
-    focussed_idg(PI, Graph, Options).
-idg_graph_(digraph(Graph), _Options) :-
-    idg_predicate_edges(Edges),
+    focussed_idg(Thread, PI, Graph, Options).
+idg_graph_(Thread, digraph(Graph), _Options) :-
+    findall(edge(From,To,Count), idg_edge(Thread,From,To,Count), Edges),
     edged_to_graph(Edges, Graph).
 
 edged_to_graph(Edges, Graph) :-
@@ -97,24 +97,30 @@ edged_to_graph(Edges, Graph) :-
     maplist(predicate_edge, Edges, GraphEdges),
     append(Nodes, GraphEdges, Graph).
 
-focussed_idg(Focus, [FocusNode|Graph], _Options) :-
+focussed_idg(Thread, Focus, [FocusNode|Graph], _Options) :-
     predicate_node(Focus, FocusNode, [penwidth(2)]),
-    idg_predicate_edges(Edges),
-    include(affected(Focus), Edges, Affected),
-    include(dependent(Focus), Edges, Dependent),
-    findall(Link, interlink(Edges, Affected, Dependent, Link), Links),
-    append([Affected, Dependent, Links], Neighbours),
+    findall(edge(Focus,Focus,Count),
+            idg_edge(Thread,Focus,Focus,Count), Self),
+    findall(edge(Focus,To,Count),
+            (idg_edge(Thread,Focus,To,Count),To \== Focus), Dependent),
+    findall(edge(From,Focus,Count),
+            (idg_edge(Thread,From,Focus,Count),From \== Focus), Affected),
+    maplist(arg(2), Dependent, DepNodes),
+    maplist(arg(1), Affected, AffNodes),
+    append(DepNodes, AffNodes, NeighbourNodes),
+    findall(Link, interlink(Thread, NeighbourNodes, Link), Links),
+    append([Self, Affected, Dependent, Links], Neighbours),
     edged_to_graph(Neighbours, Graph).
 
-affected(Node, edge(Node,_,_)).
-dependent(Node, edge(_,Node,_)).
-
-interlink(Edges, Affected, Dependent, Edge) :-
-    member(edge(_,P1,_), Affected),
-    member(edge(P2,_,_), Dependent),
-    member(Edge, Edges),
-    (   Edge = edge(P1,P2,_)
-    ;   Edge = edge(P2,P1,_)
+interlink(Thread, NeighbourNodes, Edge) :-
+    append(_, [P1|Rest], NeighbourNodes),
+    member(P2, Rest),
+    (   idg_edge(Thread,P1,P1,Count)
+    ->  Edge = edge(P1,P1,Count)
+    ;   idg_edge(Thread,P1,P2,Count)
+    ->  Edge = edge(P1,P2,Count)
+    ;   idg_edge(Thread,P2,P1,Count)
+    ->  Edge = edge(P2,P1,Count)
     ).
 
 predicate_node(PI, Node) :-

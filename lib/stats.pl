@@ -256,7 +256,6 @@ idg_save_predicate_edges_sync(Thread, Id) :-
 
 idg_save_predicate_edges(Id) :-
     retractall(idg_edge_data(Id,_,_,_)),
-    retractall(idg_edge_data_complete(Id)),
     idg_predicate_edges(Edges),
     forall(member(edge(F,T,C), Edges),
            assertz(idg_edge_data(Id,F,T,C))),

@@ -260,9 +260,14 @@ pred_detail(Pred, prof, Data) :-
     remove_keys([predicate, callers, callees], Data0, Data).
 :- endif.
 
-idg_pred_count(Pred, Dir, Count) :-
+idg_pred_count(Pred, dependent, Count) :-
     pi_head(PI, Pred),
-    aggregate_all(count, idg_predicate_edge(PI, Dir, _, _), Count).
+    thread_self(Thread),
+    aggregate_all(count, idg_edge(Thread, PI, _, _), Count).
+idg_pred_count(Pred, affected, Count) :-
+    pi_head(PI, Pred),
+    thread_self(Thread),
+    aggregate_all(count, idg_edge(Thread, _, PI, _), Count).
 
 pred_bool_option(multifile).
 pred_bool_option(discontiguous).
