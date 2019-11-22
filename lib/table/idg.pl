@@ -4,6 +4,7 @@
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (c)  2019, VU University Amsterdam
+			 CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -53,6 +54,12 @@
 */
 
 :- http_handler(webstat_api('table/IDG'), idg, [id('IDG')]).
+
+%!  idg(+Request)j
+%
+%   Produce the IDG as a graphviz   graph. Optionally takes `thread` and
+%   `focus` parameters. The latter takes a predicate indicator and shows
+%   the dependencies around the indicated predicate.
 
 idg(Request) :-
     http_parameters(Request,

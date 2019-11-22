@@ -39,21 +39,30 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
 :- use_module(library(prolog_code)).
+:- use_module(library(broadcast)).
 
 :- use_module(webstat(lib/util)).
 :- use_module(webstat(lib/stats)).
 
-/** <module> HTTP API for information about predicates
+/** <module> HTTP API for information about tabled predicates
 */
 
 :- http_handler(webstat_api('table/predicates'),
-                table_predicates, [id(tabled_predicates)]).
+                tabled_predicates, [id(tabled_predicates)]).
 
-table_predicates(Request) :-
+%!  tabled_predicates(+Request)
+%
+%   Provide a summary table about all  tabled predicates in the program.
+%   After       obtaining       the       data       it       broadcasts
+%   webstat(predicate_data(Thread, Data)) to allow   other components to
+%   react.
+
+tabled_predicates(Request) :-
     http_parameters(Request,
                     [ thread(Thread, [default(main)])
                     ]),
     in_thread(Thread, predicate_data(Data)),
+    broadcast(webstat(predicate_data(Thread, Data))),
     reply_json(Data).
 
 predicate_data(Data) :-

@@ -49,6 +49,9 @@
 :- use_module(webstat(lib/util)).
 :- use_module(webstat(lib/stats)).
 
+/** <module> HTTP handlers about predicates
+*/
+
 :- http_handler(webstat('html/predicate/details'), pred_details,
                 [id(predicate_details)]).
 :- http_handler(webstat('edit/predicate'), pred_edit,
@@ -56,6 +59,10 @@
 
 :- meta_predicate
     action(+,+,0,?,?).
+
+%!  pred_details(+Request)
+%
+%   Provide details for a predicate to be displayed in a modal dialog.
 
 pred_details(Request) :-
     http_parameters(Request,
@@ -184,7 +191,8 @@ action(Name, Label, Cond) -->
 
 %!  pred_edit(+Request)
 %
-%   Edit the given predicate
+%   Edit the given predicate. This currently   assumes we are running on
+%   localhost. In the future we should use the SWISH web editor.
 
 pred_edit(Request) :-
     http_parameters(Request,
