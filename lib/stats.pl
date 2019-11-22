@@ -37,6 +37,7 @@
             dynamic_incremental_predicate/1,	% ?Head
             table_statistics/3,                 % :Goal, ?Key, ?Value
             table_statistics_dict/2,		% :Head, -Dict
+            idg_edge/4,                         % +Thread, ?From, ?To, ?Count
             idg_predicate/1,			% -PI
             idg_predicate_edges/1,		% -Edges
             idg_predicate_edge/4,		% +From, +Dir, -To, -Count
@@ -46,6 +47,10 @@
 :- use_module(library(aggregate)).
 :- use_module(library(error)).
 :- use_module(library(prolog_code)).
+:- use_module(library(lists)).
+
+:- use_module(util).
+
 
 /** <module> Data collection utilities
 */
@@ -213,6 +218,56 @@ table(M:Variant, Trie) :-
 		 /*******************************
 		 *             IDG		*
 		 *******************************/
+
+%!  idg_edge(+Thread, ?From, ?To, ?Count) is nondet.
+%
+%   True when From affects To  in   Thread  using Count dependency links
+%   between variants of From and To.
+
+:- dynamic
+    idg_edge_data/4,
+    idg_edge_data_complete/1.
+
+idg_edge(Thread, From, To, Count) :-
+    update_idg_edge_data(Thread, Id),
+    idg_edge_data(Id, From, To, Count).
+
+update_idg_edge_data(Thread, Id) :-
+    thread_id(Thread, Id),
+    (   idg_edge_data_complete(Id)
+    ->  true
+    ;   with_mutex(webstat_idg_data,
+                   idg_save_predicate_edges_sync(Thread, Id))
+    ).
+
+thread_id(Thread, Id) :-
+    (   atom(Thread)
+    ->  Id = Thread
+    ;   integer(Thread)
+    ->  Id = Thread
+    ;   thread_property(Thread, id(Id))
+    ).
+
+idg_save_predicate_edges_sync(_Thread, Id) :-
+    idg_edge_data_complete(Id),
+    !.
+idg_save_predicate_edges_sync(Thread, Id) :-
+    in_thread(Thread, idg_save_predicate_edges(Id)).
+
+idg_save_predicate_edges(Id) :-
+    retractall(idg_edge_data(Id,_,_,_)),
+    retractall(idg_edge_data_complete(Id)),
+    idg_predicate_edges(Edges),
+    forall(member(edge(F,T,C), Edges),
+           assertz(idg_edge_data(Id,F,T,C))),
+    asserta(idg_edge_data_complete(Id)).
+
+:- listen(webstat(predicate_data(Thread, _Data)),
+          clear_idg_edge_data(Thread)).
+
+clear_idg_edge_data(Thread) :-
+    thread_id(Thread, Id),
+    retractall(idg_edge_data_complete(Id)).
 
 %!  idg_predicate_edges(-Edges) is det.
 %
