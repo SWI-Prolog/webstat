@@ -38,6 +38,7 @@
             table_statistics/3,                 % :Goal, ?Key, ?Value
             table_statistics_dict/2,		% :Head, -Dict
             idg_predicate/1,			% -PI
+            idg_predicate_edges/1,		% -Edges
             idg_predicate_edge/4,		% +From, +Dir, -To, -Count
             answer_table_property/2,		% +Table, ?Property
             (table)/2				% :Goal, -Table
@@ -213,6 +214,36 @@ table(M:Variant, Trie) :-
 		 *             IDG		*
 		 *******************************/
 
+%!  idg_predicate_edges(-Edges) is det.
+%
+%   True when Edges is a list   of  terms edge(PI1,PI2,Count). Here, PI1
+%   and PI2 are the predicate indicators of   where  PI1 affects PI2 and
+%   Count is the number of links between variants of the two predicates.
+
+idg_predicate_edges(Edges) :-
+    findall(PI1-PI2, idg_pi_edge(PI1,PI2), Pairs),
+    sort(Pairs, Sorted),
+    counts(Sorted, Edges).
+
+idg_pi_edge(PI1, PI2) :-
+    '$tbl_variant_table'(VariantTrie),
+    trie_gen(VariantTrie, _, Trie),
+    '$tbl_table_pi'(Trie, PI1),
+    '$idg_edge'(Trie, affected, Trie2),
+    '$tbl_table_pi'(Trie2, PI2).
+
+counts([], []).
+counts([H|T], [edge(PI1,PI2,Count)|Counts]) :-
+    H = PI1-PI2,
+    take_same(H,T,T1,1,Count),
+    counts(T1, Counts).
+
+take_same(H, [H|T], T1, N0, N) :-
+    N1 is N0+1,
+    !,
+    take_same(H, T, T1, N1, N).
+take_same(_, List, List, Count, Count).
+
 %!  idg_predicate_edge(:PI, +Dir, :PI2, -Count) is nondet.
 %
 %   True if PI links to  PI2  in   direction  Dir  (one of `affected` or
@@ -226,8 +257,7 @@ pred_idg_link_(PI, Dir, PI2) :-
     pi_head(PI, Head),
     table(Head, Trie),
     '$idg_edge'(Trie, Dir, Trie2),
-    '$tbl_table_status'(Trie2, _Status, Head2, _Return),
-    pi_head(PI2, Head2).
+    '$tbl_table_pi'(Trie2, PI2).
 
 %!  idg_predicate(:PI) is nondet.
 %
