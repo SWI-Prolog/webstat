@@ -1,10 +1,10 @@
-/*  Part of SWISH
+/*  Part of SWI-Prolog web dashboard
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2014-2016, VU University Amsterdam
-			      CWI Amsterdam
+    Copyright (C): 2019, VU University Amsterdam
+			 CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -180,12 +180,14 @@ define([ "jquery", "config", "utils", "modal", "form",
 
     graph: function(pred) {
       var elem = $(this);
+      var div = elem.find(".prof_graph");
+
+      utils.busy(div, true);
 
       $.ajax({
         url: config.http.locations.prof_graph,
 	data: { focus: pred },
 	success: function(html) {
-	  var div = elem.find(".prof_graph");
 	  var hld = $($.el.div({class:"graph-holder",
 	  style:"width:100px; height:100px;"}));
 
@@ -193,6 +195,7 @@ define([ "jquery", "config", "utils", "modal", "form",
 	  hld.html(html);
 	  utils.evalScripts(hld);
 	  finish(div.find("svg"));
+	  utils.busy(div, false);
 	},
 	error: function(jqXHDR) {
 	  modal.ajaxError(jqXHDR);
