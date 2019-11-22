@@ -69,6 +69,7 @@ idg_graph(Graph, Options) :-
         retractall(assigned(_,_))).
 
 idg_graph_(digraph(Graph), Options) :-
+    debug(idg, 'Creating IDG from options = ~p', [Options]),
     option(focus(Focus), Options),
     !,
     (   atomic(Focus)
@@ -76,12 +77,15 @@ idg_graph_(digraph(Graph), Options) :-
     ;   PI = Focus
     ),
     focussed_idg(PI, Graph, Options).
-idg_graph_(digraph(Graph), Options) :-
-    debug(idg, 'Creating IDG from options = ~p', [Options]),
-    findall(PI, idg_predicate(PI), Preds),
+idg_graph_(digraph(Graph), _Options) :-
+    idg_predicate_edges(Edges),
+    maplist(arg(1), Edges, From),
+    maplist(arg(2), Edges, To),
+    append(From, To, Preds0),
+    sort(Preds0, Preds),
     maplist(predicate_node, Preds, Nodes),
-    findall(Edge, predicate_edge(Preds, dependent, Edge, _), Edges),
-    append([Nodes|Edges], Graph).
+    maplist(predicate_edge, Edges, GraphEdges),
+    append(Nodes, GraphEdges, Graph).
 
 focussed_idg(Focus, [FocusNode|Graph], _Options) :-
     predicate_node(Focus, FocusNode, [penwidth(2)]),
@@ -107,6 +111,17 @@ predicate_node(PI, node(Id,
     node_id(PI, Id),
     shape(PI, Shape, Attrs),
     pi_label(PI, Label).
+
+predicate_edge(edge(From,To,Count),
+               edge(IDFrom-IDTo,
+                    [ penwidth(W), label(Count),
+                      labeltooltip(Tooltip),
+                      edgetooltip(Tooltip)
+                    ])) :-
+    node_id(From, IDFrom),
+    node_id(To, IDTo),
+    W is 1+log10(Count),
+    edge_tooltip(From, affected, To, Count, Tooltip).
 
 predicate_edge(Preds, Dir,
                [ edge(Edge,
