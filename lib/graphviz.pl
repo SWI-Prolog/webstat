@@ -36,7 +36,9 @@
 :- module(webstat_render_graphviz,
 	  [ reply_graph/2,			% +Term, +Options
 	    term_rendering//3,			% +Term, +Vars, +Options
-	    svg//2				% +String, +Options
+	    svg//2,				% +String, +Options
+
+	    heatmap_color/2			% +Value, -Color
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
@@ -162,12 +164,17 @@ render_dot(DOTString, Program, _Options) -->	% <svg> rendering
 	  call_cleanup((   read_string(XDotOut, _, SVG),
 			   read_string(ErrorOut, _, Error)
 		       ),
-		       (   process_wait_0(PID),
+		       (   process_wait_0(PID, Status),
 			   close(ErrorOut, [force(true)]),
 			   close(XDotOut)
 		       ))
 	},
-	(   { Error == "" }
+	(   { Status == exit(0),
+	      (	  Error == ""
+	      ->  true
+	      ;   print_message(warning, graphviz(Error))
+	      )
+	    }
 	->  html(div([ class(['render-graphviz', 'reactive-size']),
 		       'data-render'('As Graphviz graph')
 		     ],
@@ -176,7 +183,7 @@ render_dot(DOTString, Program, _Options) -->	% <svg> rendering
 		     [ '~w'-[Program], ': ', Error]))
 	).
 
-process_wait_0(PID) :-
+process_wait_0(PID, Status) :-
 	process_wait(PID, Status),
 	(   Status == exit(0)
 	->  true
@@ -698,3 +705,78 @@ cchar(0'") --> "\\\"".
 cchar(0'\n) --> "\\n".
 cchar(0'\t) --> "\\t".
 cchar(0'\b) --> "\\b".
+
+		 /*******************************
+		 *	      COLORS		*
+		 *******************************/
+
+%!	heatmap_color(+V, -String)
+%
+%	Map a value [0..1] to a heatmap color.
+
+heatmap_color(V, String) :-
+	heatmap_hsl(V, HSL),
+	hsl_to_rgb(HSL, rgb(R,G,B)),
+	R1 is round(R*255),
+	G1 is round(G*255),
+	B1 is round(B*255),
+	phrase(rgb_codes(R1,G1,B1), Codes),
+	string_codes(String, Codes).
+
+rgb_codes(R,G,B) -->
+	"#", hex(R), hex(G), hex(B).
+
+hex(V) -->
+	{ D1 is V // 16,
+	  D2 is V mod 16
+	},
+	hdigit(D1), hdigit(D2).
+
+hdigit(D) -->
+	[C],
+	{ code_type(C, xdigit(D)) }.
+
+%!	heatmap_color(+V, -HSL)
+
+heatmap_hsl(V, hsl(H,1,0.5)) :-
+	H is (1-V)*240/256.
+
+%!	hsl_to_rgb(+HSL, -RGB)
+%
+%	Map colors from HSL (HSV) space to   RGB. Taken from xpce hsv.c.
+%	Can be useful  for  gradient   computations  and  related  color
+%	manipulation.
+%
+%	@tbd:	Make bi-directional
+
+hsl_to_rgb(hsl(H,S,V), rgb(R2,G2,B2)) :-
+	(   H > 0.17, H =< 0.33
+	->  G = 1, R is (0.33-H)/0.16, B = 0
+	;   H > 0.33, H =< 0.5
+	->  G = 1, B is (H-0.33)/0.17, R = 0
+	;   H > 0.5, H =< 0.67
+	->  B = 1, G is (0.67-H)/0.17, R = 0
+	;   H > 0.67, H =< 0.83
+	->  B = 1, R is (H-0.67)/0.16, G = 0
+	;   H > 0.83, H =< 1.0
+	->  R = 1, B is (1-H)/0.17, G = 0
+	;   R = 1, G is H/0.17, B = 0
+	),
+
+	R1 is S*R + (1-S),
+	G1 is S*G + (1-S),
+	B1 is S*B + (1-S),
+
+	R2 is R1 * V,
+	G2 is G1 * V,
+	B2 is B1 * V.
+
+		 /*******************************
+		 *	      MESSAGES		*
+		 *******************************/
+
+:- multifile
+	prolog:message//1.
+
+prolog:message(graphviz(Warning)) -->
+	[ 'Graphviz: ~w'-[Warning] ].
