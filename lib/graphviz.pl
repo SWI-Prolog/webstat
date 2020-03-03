@@ -304,7 +304,7 @@ webstat_send_graphviz(Request) :-
 				      [ dialect(xml) ]),
 		       read_string(ErrorOut, _, Error)
 		     ),
-		     (	 process_wait_0(PID),
+		     (	 process_wait_0(PID, _Status),
 			 close(ErrorOut, [force(true)]),
 			 close(XDotOut)
 		     )),
