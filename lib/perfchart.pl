@@ -220,8 +220,28 @@ stat(tables, Value) :-
 stat(table_space, Value) :-
      statistics(table_space_used, Value).
 
-:- if(current_predicate(mallinfo/1)).
+:- if(current_predicate(malloc_property/1)).
+stat(tcheap, Heap) :-
+    statistics(heapused, Heap).
 
+stat(tcheap_fragmentation, Lost) :-
+    malloc_property('generic.heap_size'(Total)),
+    malloc_property('generic.current_allocated_bytes'(Allocated)),
+    Lost is Total-Allocated.
+
+stat_series(tcheap,
+            _{ label: "Heap memory",
+               title: "Heap (malloc - stack)",
+               unit:  bytes
+             }).
+stat_series(tcheap_fragmentation,
+            _{ label: "Malloc lost",
+               title: "Freed memory not reused",
+               unit:  bytes
+             }).
+:- endif.
+
+:- if(current_predicate(mallinfo/1)).
 stat_series(malloc,
             _{ label: "Malloc in use",
                title: "Malloc'ed memory in use",
