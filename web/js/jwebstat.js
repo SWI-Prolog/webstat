@@ -72,12 +72,12 @@ define([ "jquery",
 	  $("body").webstat('show_perfchart');
 	},
 	"Execution profiler": function() {
-	  $("body").webstat('profiler');
+	  $("body").webstat('show_profiler');
 	},
       },
       "Debug":
       { "Debug messages": function() {
-	  $("body").webstat('debug_messages');
+	  $("body").webstat('show_debug_messages');
 	}
       },
       "Tabling":
@@ -153,7 +153,7 @@ define([ "jquery",
     /**
      * Show debug messages
      */
-    debug_messages: function(options) {
+    show_debug_messages: function(options) {
       this.webstat('tab', {
         label: "Debug messages",
 	page: true
@@ -226,7 +226,7 @@ define([ "jquery",
     /**
      * Show profiler
      */
-    profiler: function(options) {
+    show_profiler: function(options) {
       this.webstat('tab', {
         label: "Profiler",
 	page: true,

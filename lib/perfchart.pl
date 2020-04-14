@@ -3,7 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2019, VU University Amsterdam
+    Copyright (c)  2019-2020, VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -36,6 +37,9 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
+:- use_module(library(broadcast)).
+:- use_module(library(error)).
+:- use_module(library(apply)).
 :- if(exists_source(library(mallocinfo))).
 :- use_module(library(mallocinfo)).
 :- endif.
@@ -43,7 +47,8 @@
 :- use_module(procps).
 :- endif.
 
-:- use_module(webstat(lib/util)).
+:- use_module(util).
+:- use_module(push).
 
 :- multifile
     webstat:stat_series/2,
@@ -59,20 +64,97 @@
 %   objects with minimally a `name` field.
 
 perf_series(_Request) :-
-    findall(Series, stat_series(Series), SeriesList),
+    findall(Series, active_stat_series(_, Series), SeriesList),
     reply_json(json{ series:SeriesList,
-                     rate:1
+                     rate:1,
+                     refresh:1
                    }).
 
-stat_series(Dict) :-
+active_stat_series(Name, Dict) :-
     webstat:stat_series(Name, Props),
     \+ webstat:stat_disabled(Name),
     Dict = Props.put(name, Name).
-stat_series(Dict) :-
+active_stat_series(Name, Dict) :-
     stat_series(Name, Props),
     \+ webstat:stat_disabled(Name),
     Dict = Props.put(name, Name).
 
+
+		 /*******************************
+		 *           MARKINGS		*
+		 *******************************/
+
+:- listen(webstat(perfchart, Action),
+          wstat(Action)).
+
+wstat(Action) :-
+    must_be(ground, Action),
+    (   is_list(Action)
+    ->  maplist(action_json, Action, JSON)
+    ;   action_json(Action, JSON0),
+        JSON = [JSON0]
+    ),
+    webstat_push(JSON).
+
+action_json(marking(Options),
+            json{target:perfchart,
+                 marking: Obj
+                }) :-
+    !,
+    dict_create(Obj0, json, Options),
+    format_label(Obj0, Obj).
+action_json(interval(Time),
+            json{target:perfchart,
+                 interval:Time
+                }) :-
+    !,
+    must_be(number, Time).
+action_json(refresh(Time),
+            json{target:perfchart,
+                 refresh:Time
+                }) :-
+    !,
+    must_be(number, Time).
+action_json(series(Series),
+            json{target:perfchart,
+                 series:JSON
+                }) :-
+    must_be(list, Series),
+    convlist(series_json, Series, JSON).
+action_json(Action,
+            json{target:perfchart,
+                 action:Action
+                }) :-
+    !,
+    must_be(oneof([stop,start,clear]), Action).
+
+
+format_label(Options0, Options) :-
+    Fmt-Args = Options0.get(label),
+    !,
+    format(string(Label), Fmt, Args),
+    Options = Options0.put(label, Label).
+format_label(Options0, Options) :-
+    Label0 = Options0.get(label),
+    \+ (string(Label0); atom(Label0)),
+    !,
+    term_string(Label0, Label),
+    Options = Options0.put(label, Label).
+format_label(Options, Options).
+
+series_json(+Series, json{series:Series, show:true}) :-
+    stat_series(Series, _),
+    !.
+series_json(-Series, json{series:Series, show:false}) :-
+    stat_series(Series, _),
+    !.
+series_json(Term, _) :-
+    domain_error(series, Term).
+
+
+		 /*******************************
+		 *            SAMPLING		*
+		 *******************************/
 
 %!  perf_sample(+Request)
 %

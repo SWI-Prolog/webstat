@@ -96,7 +96,7 @@ prolog:debug_print_hook(Topic, Format, Args) :-
     to_primitive(Topic, TopicS),
     thread_id(Id),
     get_time(Now),
-    webstat_push(json{type:debug,
+    webstat_push(json{target:debug,
                       id:SegNo,
                       thread:Id,
                       time:Now,

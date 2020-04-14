@@ -108,12 +108,22 @@ var MAX_RECONNECT_DELAY = 300000;
 	}, reconnect_delay);
       };
       data.connection.onmessage = function(e) {
-	var msg = JSON.parse(e.data);
-	msg.origin = e.origin;
-	if ( msg.type )
-	  elem[pluginName](msg.type, msg);
-	else
-	  console.log(e);
+	var data = JSON.parse(e.data);
+
+	function dispatch(msg) {
+	  msg.origin = e.origin;
+	  if ( msg.target )
+	    elem[pluginName](msg.target, msg);
+	  else
+	    console.log("Missing target:", msg);
+	}
+
+	if ( Array.isArray(data) ) {
+	  for(var i=0; i<data.length; i++)
+	    dispatch(data[i]);
+	} else {
+	  dispatch(data);
+	}
       };
       data.connection.onopen = function() {
 	console.log("push connection is open");
@@ -130,6 +140,14 @@ var MAX_RECONNECT_DELAY = 300000;
 
     debug: function(msg) {
       $(".ws_debug").ws_debug('add_message', msg);
+    },
+
+    perfchart: function(msg) {
+      $(".perfchart").perfchart('push', msg);
+    },
+
+    window: function(msg) {
+       $("body").webstat(msg.action);
     }
   }; // methods
 

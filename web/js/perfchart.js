@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2019, VU University Amsterdam
-			 CWI Amsterdam
+    Copyright (C): 2019-2020, VU University Amsterdam
+			      CWI Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,8 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
     }
   };
 
+  var default_refresh_rate = 1.0;	/* refresh max each second */
+
   /** @lends $.fn.perfchart */
   var methods = {
     _init: function(options) {
@@ -118,7 +120,8 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
       var data = elem.data(pluginName);
       var colors = palette("mpn65", options.series.length);
 
-      data.rate      = Math.round((options.rate||1)*1000);
+      data.rate      = options.rate||1;
+      data.refresh   = options.refresh||1;
       data.series    = {};
       data.x	     = 0;
       data.samples   = Math.round(elem.width()/2);
@@ -173,6 +176,112 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
     },
 
     /**
+     * Deal with push messages
+     */
+    push: function(obj) {
+      var elem = $(this);
+      var data  = $(this).data(pluginName);
+
+      if ( obj.marking ) {
+	var marking = obj.marking;
+	marking.x = data.x;
+	this[pluginName]('marking', marking);
+      }
+      if ( obj.action ) {
+	if ( obj.action == 'stop' )
+	  elem[pluginName]('play', false);
+	else if ( obj.action == 'start' )
+	  elem[pluginName]('play', true);
+	else if ( obj.action == 'clear' )
+	  elem[pluginName]('clear');
+      }
+      if ( obj.interval ) {
+	elem[pluginName]('play', obj.interval);
+      }
+      if ( obj.refresh ) {
+	if ( obj.refresh < data.refresh )
+	  elem[pluginName]('redraw');
+	data.refresh = obj.refresh;
+      }
+      if ( obj.series ) {
+	var menu = elem.find("div.series");
+
+	for(var i=0; i<obj.series.length; i++) {
+	  var s = obj.series[i];
+
+	  elem[pluginName]('activate_series', s.series, s.show);
+	  var ch = menu.find("input[name="+s.series+"]");
+	  if ( s.show )
+	    ch.attr("checked", "checked");
+	  else
+	    ch.removeAttr("checked");
+	}
+      }
+    },
+
+    /**
+     * Add a marking annotation to the X-axis
+     */
+    marking: function(options, draw) {
+      var data  = $(this).data(pluginName);
+      var color = options.color||"#000";
+      var lw    = options.width||1;
+      var x     = options.x||0;
+      var y     = options.y||11;
+      var grid  = data.plot.getOptions().grid;
+
+      if ( grid.markings == undefined )
+	grid.markings = [];
+
+      grid.markings.push({
+        color: color,
+	lineWidth: lw,
+	xaxis: {from: x, to: x}
+      });
+
+      if ( options.label ) {
+	var placeholder = $(this).find(".flot");
+	var o = data.plot.pointOffset({ x: x, y: Math.pow(10,y)});
+	var m;
+	placeholder.append(m=
+			   $.el.div({style: "position:absolute;"+
+					    "left:"+(o.left+4)+"px;"+
+					    "top:"+(o.top)+"px;",
+				     class: "plot-marking-label"
+				    },
+				    options.label));
+	$(m).data("marking", {x:x, y:y});
+      }
+
+      if ( draw != false ) {
+	data.plot.setupGrid();
+	data.plot.draw();
+      }
+    },
+
+    /* Update the marking labels.  If the marking is outside the xaxis
+     * region, delete it completely.
+     */
+
+    update_markings: function() {
+      var elem  = $(this);
+      var data  = elem.data(pluginName);
+      var xaxis = data.plot.getAxes().xaxis;
+
+      elem.find(".plot-marking-label").each(function() {
+	var div = $(this);
+	var md  = div.data("marking");
+
+	if ( md.x < xaxis.options.min || md.x > xaxis.options.max ) {
+	  md.remove();
+	} else {
+	  var o = data.plot.pointOffset({ x: md.x, y: Math.pow(10,md.y)});
+	  div.css({ left: o.left+4, top: o.top });
+	}
+      });
+    },
+
+    /**
      * Start collecting the chart.
      * @param {Any} how is one of `false`, `true` or #milliseconds
      */
@@ -182,27 +291,52 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
       var clear = (how == false);
 
       if ( typeof how == "number" ) {
-	data.rate = how;
-	how = true;
-	clear = true;
+	if ( data.rate != how ) {
+	  data.rate = how;
+	  if ( data.timer ) {
+	    how = true;
+	    clear = true;
+	  } else {
+	    how = false;
+	  }
+	}
       }
 
       if ( clear && data.timer ) {
 	clearInterval(data.timer);
 	data.timer = null;
+	if ( !how )			/* stopped, flush last bits */
+	  elem[pluginName]('redraw');
       }
 
       if ( how == true && !data.timer ) {
 	data.timer = setInterval(function() {
 	  elem[pluginName]('update');
-	}, data.rate);
+	}, Math.round(data.rate*1000));
       }
 
-      var btn = elem.find(".controller .glyphicon-play");
-      if ( how )
-	btn.addClass("recording");
-      else
-	btn.removeClass("recording");
+      var btn = elem.find(".controller .play");
+      var span = btn.find("span");
+      span.removeClass("glyphicon-play glyphicon-pause");
+      if ( how ) {
+	btn.addClass("recording")
+	   .attr("title", "Stop recording");
+	span.addClass("glyphicon-pause");
+      } else {
+	btn.removeClass("recording")
+	   .attr("title", "Start recurding");
+	span.addClass("glyphicon-play");
+      }
+
+      var sel = elem.find(".controller select");
+      sel.find("option").removeAttr("selected");
+      var opt = sel.find("option[value='"+data.rate+"']");
+      if ( opt.length > 0 ) {
+	opt.attr("selected", "selected");
+      } else {
+	sel.append($.el.option({value:data.rate, selected:"selected"},
+			       data.rate+" sec"));
+      }
     },
 
     controller: function() {
@@ -217,18 +351,20 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
       ctrl.append(br=$($.el.div({class:"btn-group"})));
       br.append(clear=$(form.widgets.glyphIconButton("step-backward", {})),
 		$("<span class='menu-space'>&nbsp</span>"),
-		play =$(form.widgets.glyphIconButton("play", {})),
-		pause=$(form.widgets.glyphIconButton("pause", {})));
+		play =$(form.widgets.glyphIconButton("play", {})));
 
-      play.on("click", function()  { elem[pluginName]('play', true); });
-      pause.on("click", function() { elem[pluginName]('play', false); });
-      clear.on("click", function() { elem[pluginName]('clear'); });
+      clear.on("click", function() { elem[pluginName]('clear'); })
+           .attr("title", "Clear and reset chart");
+      play.addClass("play");
+      play.on("click", function(ev) {
+	elem[pluginName]('play', data.timer ? false : true);
+      });
 
       br.append($.el.label({class:"sample-rate"}, "Sample rate:"));
       br.append(sel=$($.el.select({class:"form-control"})));
 
       sel.on('change', function() {
-	elem[pluginName]('play', this.value*1000);
+	elem[pluginName]('play', this.value);
       });
 
       function opt(time, label, def) {
@@ -394,13 +530,23 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
 	}
       }
 
+      if ( options.markings ) {
+	for(var i=0; i < options.markings.length; i++) {
+	  var m = options.markings[i];
+	  m.x = x;
+
+	  elem[pluginName]('marking', m, false);
+	}
+      }
+
       if ( elem.is(":visible") ) {
 	var now = Date.now();
-	if ( !(data.last_redraw && now - data.last_redraw < 1000) ) {
+	if ( !(data.last_redraw && now - data.last_redraw < data.refresh*1000) ) {
 	  data.last_redraw = now;
 	  data.plot.setData(data.flot_data);
 	  data.plot.setupGrid();		/* remove if grid is fixed */
 	  data.plot.draw();
+	  elem[pluginName]('update_markings');
 	}
       }
     },
@@ -414,12 +560,14 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
 	data.plot.resize();
 	data.plot.setupGrid();			/* remove if grid is fixed */
 	data.plot.draw();
+	elem[pluginName]('update_markings');
       }
     },
 
     clear: function() {
       var elem  = $(this);
       var data  = elem.data(pluginName);
+      var xaxis = data.plot.getAxes().xaxis;
 
       for(var p in data.series) {
 	if ( data.series.hasOwnProperty(p) ) {
@@ -428,9 +576,14 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
 	}
       }
 
+      elem.find(".plot-marking-label").remove();
+
       data.x = 0;
+      xaxis.options.min = data.x;
+      xaxis.options.max = data.x + data.samples;
 
       data.plot.setData(data.flot_data);
+      data.plot.getOptions().grid.markings = [];
       data.plot.setupGrid();			/* remove if grid is fixed */
       data.plot.draw();
     },
@@ -467,6 +620,7 @@ define([ "jquery", "config", "flot", "utils", "form", "modal",
 	data.plot.resize();
 	data.plot.setupGrid();
 	data.plot.draw();
+	elem[pluginName]('update_markings');
       }
     }
   }; // methods

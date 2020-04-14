@@ -117,6 +117,21 @@ content(_Options) -->
 
 
 		 /*******************************
+		 *       CONTROL WINDOWS	*
+		 *******************************/
+
+:- listen(webstat(window, Window),
+          show_window(Window)).
+
+show_window(Window) :-
+    must_be(oneof([perfchart,profiler,messages,tabled_predicates,idg]), Window),
+    atom_concat('show_', Window, Action),
+    webstat_push(json{target:window,
+                      action:Action
+                     }).
+
+
+		 /*******************************
 		 *          RESOURCES		*
 		 *******************************/
 

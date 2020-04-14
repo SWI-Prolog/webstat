@@ -24,7 +24,9 @@ This project is in a very early state.  To run the prototype:
   - Get the latest version of
     [swipl-devel.git](https://github.com/SWI-Prolog/swipl-devel.git)
   - Get the [yarn](https://yarnpkg.com) package manager and use it
-    to install the JavaScript dependencies
+    to install the JavaScript dependencies:
+
+        yarn
 
 ## Running
 
@@ -35,3 +37,11 @@ This project is in a very early state.  To run the prototype:
 	?- webstat(4000).
 
   - Direct your browser to http://localhost:4000
+
+## Controlling the view
+
+The file `webstat_control.pl` is a lightweight   program that allows you
+to control the interface from  your   program.  Probably the most useful
+feature is to control the _Resource chart_  tab by starting and stopping
+it from your program and optionally add events that indicate progress of
+the program you are analyzing.

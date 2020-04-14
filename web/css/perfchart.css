@@ -49,6 +49,12 @@ label.sample-rate { margin-left: 2ex; margin-right: 1ex; }
   font-family: Monospace;
 }
 
-.glyphicon-play.recording {
+.play.recording span {
   color: red;
+}
+
+.plot-marking-label {
+  border: 1px solid #888;
+  padding: 0px 5px;
+  background: #eee;
 }
