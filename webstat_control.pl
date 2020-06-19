@@ -52,11 +52,11 @@ Here is a simple example
 run(Data) :-
     ws_control(perfchart, [clear,interval(5),start]),
     initialize,
-    ws_control(perfchart, marking("Loading data")),
+    ws_control(perfchart, marking([label="Loading data"])),
     load_data(Data),
-    ws_control(perfchart, marking("Solve")),
+    ws_control(perfchart, marking([label="Solve"])),
     solve,
-    ws_control(perfchart, marking("Report")),
+    ws_control(perfchart, marking([label="Report"])),
     report,
     ws_control(perfchart, stop),
 ```
